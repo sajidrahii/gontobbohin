@@ -1,4 +1,4 @@
-# গন্তব্যহীন — static site
+# গন্তব্যহীন — static site (v1.0.2)
 Pure HTML/CSS/JS, no build step, no server. Deploy the `public/` folder.
 
 - **Run locally:** open `public/index.html`, or run `python -m http.server` inside `public/`.

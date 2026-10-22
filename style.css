@@ -249,3 +249,26 @@ kbd{font:inherit;font-size:13px;font-weight:700;padding:0 7px;border:1px solid v
 .selbar .mini input{flex:1;min-width:70px;width:auto}
 .selbar .sz{display:none}
 [data-theme=map] .selbar .sz{display:flex}
+
+/* ---- v1.0.2: colour themes, % readouts, hero journeys ---- */
+.pal{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:0 0 14px}
+.pal-t{font-weight:700;color:var(--pine);font-size:15px;margin-right:2px}
+.pal label{display:flex;align-items:center;gap:8px;padding:4px 12px 4px 5px;border:1px solid var(--line);border-radius:999px;background:#fff;cursor:pointer;font-size:14px;font-weight:700;color:var(--muted);transition:border-color .3s var(--ease),background .3s var(--ease),transform .35s var(--ease)}
+.pal label:hover{transform:translateY(-2px)}
+.pal input{position:absolute;opacity:0;pointer-events:none}
+.pal i{flex:none;width:28px;height:28px;border-radius:50%;border:2px solid #fff;box-shadow:0 0 0 1px var(--line);background:conic-gradient(var(--a) 0 25%,var(--b) 0 50%,var(--c) 0 75%,var(--d) 0);transition:transform .45s var(--ease)}
+.pal label:has(input:checked){border-color:var(--sun);background:#fff3e8;color:var(--pine)}
+.pal label:has(input:checked) i{transform:rotate(90deg) scale(1.08)}
+.pal label:has(input:focus-visible){outline:3px solid var(--sky)}
+.val{display:inline-block;min-width:3.4em;margin-left:6px;padding:0 10px;border-radius:999px;background:var(--sand);color:var(--pine);font-weight:800;font-size:14px;text-align:center;font-variant-numeric:tabular-nums}
+.field .lab{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.selbar .mini .val,.esize .val{margin:0;min-width:3.2em;flex:none}
+.legend{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin-top:8px}
+.legend button{display:flex;align-items:center;gap:8px;font:inherit;font-size:14px;font-weight:700;color:var(--pine);padding:2px 12px;border:1px solid var(--line);border-radius:999px;background:#fff;cursor:pointer;transition:transform .3s var(--ease),background .3s var(--ease),border-color .3s}
+.legend button:hover,.legend button:focus-visible{transform:translateY(-2px);background:#fff3e8;border-color:var(--sun)}
+.legend i{width:18px;height:5px;border-radius:3px}
+.route-g{transition:opacity .4s var(--ease)}
+#heroArt.dim .route-g{opacity:.16}
+#heroArt.dim .route-g.hl{opacity:1}
+.rt-dash2{animation:march2 1.4s linear infinite}
+@keyframes march2{to{stroke-dashoffset:calc(var(--dl)*-3)}}

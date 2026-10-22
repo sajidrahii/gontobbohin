@@ -10,7 +10,7 @@
 </head>
 <body>
 <nav class="bar" aria-label="প্রধান মেনু">
-  <a class="logo" href="#top">গন্তব্যহীন v1.0.1</a>
+  <a class="logo" href="#top">গন্তব্যহীন v1.0.2</a>
   <ul><li><a href="#top">হোম</a></li><li><a href="#builder">অ্যালবাম বানান</a></li><li><a href="#preview">ডাউনলোড</a></li></ul>
 </nav>
 
@@ -23,7 +23,8 @@
     <p class="lead">ঘোরাঘুরির ছবি আর জায়গার নাম দিন — ম্যাপসহ সুন্দর অ্যালবাম তৈরি হবে নিমেষেই।</p>
     <div class="cta-row"><a class="cta" href="#builder">অ্যালবাম বানান <span aria-hidden="true">→</span></a><a class="link" href="#how">কীভাবে কাজ করে</a></div>
   </div>
-  <div class="artcard reveal" style="--d:.15s"><svg id="heroArt" viewBox="-80 -10 590 640" role="img" aria-label="বাংলাদেশের মানচিত্রে তেতুলিয়া থেকে টেকনাফ পর্যন্ত ভ্রমণপথ"></svg><p class="artcap">তেতুলিয়া থেকে টেকনাফ — প্রতিটি পথের একটি গল্প</p></div>
+  <div class="artcard reveal" style="--d:.15s"><svg id="heroArt" viewBox="-80 -10 590 640" role="img" aria-label="বাংলাদেশের মানচিত্রে তেতুলিয়া থেকে টেকনাফ পর্যন্ত ভ্রমণপথ"></svg><div class="legend" id="heroLegend"><button type="button" data-r="main"><i style="background:#ff7a2f"></i>🧭 মূল যাত্রা</button><button type="button" data-r="bike"><i style="background:#2b8fb3"></i>🚲 বাইক</button><button type="button" data-r="train"><i style="background:#5b6b61"></i>🚆 ট্রেন</button><button type="button" data-r="bus"><i style="background:#b5446e"></i>🚌 বাস</button></div>
+    <p class="artcap">তেতুলিয়া থেকে টেকনাফ — প্রতিটি পথের একটি গল্প</p></div>
 </section>
 
 <section id="how" class="steps">
@@ -71,7 +72,7 @@
             <input id="ePlace" placeholder="জায়গার নাম (ঐচ্ছিক)" aria-label="জায়গার নাম (ঐচ্ছিক)">
           </div>
           <p class="hintline">জেলা লিখে <kbd>Enter</kbd> চাপলে পরের ছবিতে চলে যাবে। বাংলা বা ইংরেজি — দুভাবেই খোঁজা যায়।</p>
-          <label class="esize sz">আকার <input id="eSize" type="range" min="50" max="200"></label>
+          <label class="esize sz">আকার <output id="evalOut" class="val"></output> <input id="eSize" type="range" min="50" max="200"></label>
           <button id="eDel" type="button" class="danger sm">মুছে ফেলুন</button>
         </div>
         <div id="tiles" class="tiles" aria-label="ছবির তালিকা"></div>
@@ -93,15 +94,16 @@
           <label><input type="radio" name="shape" value="circle"><svg viewBox="0 0 40 40"><circle cx="20" cy="20" r="16"/></svg><span>বৃত্ত</span></label>
         </div></div>
       <label class="field sz">প্রতি পাতায় ছবি <select id="perMap"><option>8</option><option>12</option><option selected>16</option><option>20</option><option>24</option></select></label>
-      <label class="field sz">সব ছবির আকার <input id="gsize" type="range" min="50" max="200" value="100"></label>
+      <div class="field sz"><label for="gsize" class="lab">সব ছবির আকার <output id="gval" class="val" for="gsize">১০০%</output></label><input id="gsize" type="range" min="50" max="200" value="100"></div>
     </div>
 
     <div id="preview" class="card panel sticky reveal" style="--d:.1s">
       <div class="ph"><b class="num">৩</b><h3>লাইভ প্রিভিউ ও ডাউনলোড</h3><button id="bigbtn" type="button" class="ghost">বড় করে দেখুন</button></div>
+      <div class="pal" id="palBox" role="radiogroup" aria-label="রঙের থিম"></div>
       <p id="hint" class="note" hidden>মানচিত্রে জেলার ওপর মাউস রাখলে নাম দেখা যাবে। ছবিতে ক্লিক করে কোণার বিন্দু টেনে আকার বদলান।</p>
       <div id="selbar" class="selbar" hidden><b id="selname"></b>
-        <label class="mini">জুম <input id="szoom" type="range" min="100" max="400" aria-label="ছবির জুম"></label>
-        <label class="mini sz">কার্ড <input id="ssize" type="range" min="50" max="200" aria-label="কার্ডের আকার"></label>
+        <label class="mini">জুম <output id="zval" class="val"></output> <input id="szoom" type="range" min="100" max="400" aria-label="ছবির জুম"></label>
+        <label class="mini sz">কার্ড <output id="sval" class="val"></output> <input id="ssize" type="range" min="50" max="200" aria-label="কার্ডের আকার"></label>
         <button id="sreset" type="button" class="ghost sm"><span aria-hidden="true">↺</span> রিসেট</button>
         <button id="desel" type="button" class="ghost sm"><span aria-hidden="true">✕</span> বাতিল</button></div>
       <div id="pager" class="pager" hidden><button id="prev" type="button" class="ghost" aria-label="আগের পাতা">‹</button><span id="pageInfo"></span><button id="next" type="button" class="ghost" aria-label="পরের পাতা">›</button></div>
@@ -111,7 +113,7 @@
   </div>
 </section>
 </main>
-<footer class="foot">গন্তব্যহীন · তৈরী করেছেনঃ সাজিদ আহমেদ রাহী · আইওটি এন্ড রোবোটিক্স ইঞ্জিনিয়ারিং বিভাগ, ইউএফটিবি </footer>
+<footer class="foot">গন্তব্যহীন v1.0.2 · Vibe Coded by সাজিদ আহমেদ রাহী · Dept. of IoT & Robotics Engineering, UFTB</footer>
 <div id="tip" class="tip"></div>
 <dialog id="big"><button id="bigclose" type="button" class="ghost">বন্ধ করুন</button><div id="bigOut"></div></dialog>
 <script src="js/data.js"></script>

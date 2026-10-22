@@ -1,6 +1,12 @@
 const $=s=>document.querySelector(s),sleep=ms=>new Promise(r=>setTimeout(r,ms)),bn=n=>n.toLocaleString('bn-BD');
 const MAXP=200,FONT='"Anek Bangla"',DIST=n=>DISTRICTS.find(d=>d[0]===n),DEFAULT_TITLE='বাংলাদেশের আনাচে-কানাচে আমি';
 const DP=MAP.districts.map(d=>new Path2D(d[1])),DN=MAP.districts.map(d=>d[0]),theme=()=>document.querySelector('[name=theme]:checked').value;
+const PALS={
+  classic:{name:'ক্লাসিক',bg:'#f6f1e7',plain:'#ffffff',ink:'#000000',title:'#14382b',base:'#dfd8c6',edge:'#f8f4ea',visited:'#4aa36a',line:'#f26a2e',ring:'#ffffff',cardEdge:'#ffffff',pillBg:'rgba(255,255,255,.92)',pillInk:'#14382b',foot:'#8a948c',footPlain:'#777777',dash:'#cdbf9f',hint:'#8a948c'},
+  night:{name:'রাতের আকাশ',bg:'#0f1b2d',plain:'#0f1b2d',ink:'#f4e9c8',title:'#f4e9c8',base:'#27384f',edge:'#0f1b2d',visited:'#2fd0a0',line:'#ffb347',ring:'#0f1b2d',cardEdge:'#e8eefc',pillBg:'rgba(15,27,45,.88)',pillInk:'#f4e9c8',foot:'#8aa0c0',footPlain:'#8aa0c0',dash:'#3a4f6c',hint:'#8aa0c0'},
+  ocean:{name:'সাগর',bg:'#e4f2f6',plain:'#f4fafc',ink:'#0b3a4a',title:'#0b3a4a',base:'#c3dbe4',edge:'#f1f9fb',visited:'#1f8fa6',line:'#ff6b57',ring:'#ffffff',cardEdge:'#ffffff',pillBg:'rgba(255,255,255,.92)',pillInk:'#0b3a4a',foot:'#6b8f99',footPlain:'#6b8f99',dash:'#a9c8d3',hint:'#6b8f99'},
+  sunset:{name:'সূর্যাস্ত',bg:'#fdeadf',plain:'#fff6ef',ink:'#4a1d33',title:'#4a1d33',base:'#f0cfb9',edge:'#fff3ea',visited:'#e0592a',line:'#7a2a5c',ring:'#ffffff',cardEdge:'#ffffff',pillBg:'rgba(255,255,255,.92)',pillInk:'#4a1d33',foot:'#a07a6a',footPlain:'#a07a6a',dash:'#e6bfa6',hint:'#a07a6a'}};
+let pal='classic';const PAL=()=>PALS[pal];
 const PINE='#14382b',SUN='#f26a2e',CREAM='#f6f1e7',GREEN='#4aa36a',BEIGE='#dfd8c6';
 const SHAPES={rect:1,circle:1};
 const DDIV=Object.fromEntries(DISTRICTS.map(d=>[d[0],d[4]])),DDIVI=DN.map(n=>DDIV[n]);
@@ -84,21 +90,52 @@ ov.addEventListener('pointermove',showTip);ov.addEventListener('pointerdown',sho
 ov.addEventListener('pointerleave',e=>{if(e.pointerType==='mouse')tip.classList.remove('show')});
 document.addEventListener('pointerdown',e=>{if(!e.target.closest('.mapov'))tip.classList.remove('show')});
 
-/* ---------- hero: travel route across Bangladesh ---------- */
+/* ---------- hero: journeys across Bangladesh (main trip + bike, train, bus) ---------- */
 (function(){
+  const still=matchMedia('(prefers-reduced-motion: reduce)').matches,N=s=>s.normalize('NFC'),pt=(lat,lng)=>proj({lat,lng});
+  const curve=P=>{let d=`M${P[0][0]} ${P[0][1]}`;for(let i=0;i<P.length-1;i++){const a=P[Math.max(0,i-1)],b=P[i],c=P[i+1],e=P[Math.min(P.length-1,i+2)];
+    d+=`C${b[0]+(c[0]-a[0])/6} ${b[1]+(c[1]-a[1])/6} ${c[0]-(e[0]-b[0])/6} ${c[1]-(e[1]-b[1])/6} ${c[0]} ${c[1]}`}return d};
   const stops=[['তেতুলিয়া',26.485,88.345,'r'],['রাজশাহী',24.37,88.6,'l'],['ঢাকা',23.81,90.41,'r'],['সিলেট',24.9,91.87,'r'],['চট্টগ্রাম',22.34,91.83,'l'],['কক্সবাজার',21.45,91.98,'l'],['টেকনাফ',20.86,92.3,'l']];
-  const seen=new Set(['পঞ্চগড়','রাজশাহী','ঢাকা','সিলেট','চট্টগ্রাম','কক্সবাজার'].map(s=>s.normalize('NFC')));
-  const P=stops.map(s=>proj({lat:s[1],lng:s[2]}));
-  let d=`M${P[0][0]} ${P[0][1]}`;
-  for(let i=0;i<P.length-1;i++){const a=P[Math.max(0,i-1)],b=P[i],c=P[i+1],e=P[Math.min(P.length-1,i+2)];
-    d+=`C${b[0]+(c[0]-a[0])/6} ${b[1]+(c[1]-a[1])/6} ${c[0]-(e[0]-b[0])/6} ${c[1]-(e[1]-b[1])/6} ${c[0]} ${c[1]}`}
-  let h=MAP.districts.map(([n,p])=>`<path d="${p}" fill="${seen.has(n.normalize('NFC'))?GREEN:BEIGE}" stroke="#f8f4ea" stroke-width=".9" stroke-linejoin="round"/>`).join('');
-  h+=`<path id="route" d="${d}" fill="none" stroke="${SUN}" stroke-opacity=".28" stroke-width="7" stroke-linecap="round"/><path class="rt-dash" d="${d}" fill="none" stroke="${SUN}" stroke-width="3.2" stroke-linecap="round" stroke-dasharray="7 9"/>`;
-  stops.forEach((s,i)=>{const[x,y]=P[i],L=s[3]==='l';
-    h+=`<g><circle class="ring" cx="${x}" cy="${y}" r="9" fill="${SUN}" style="animation-delay:${i*.35}s"/><circle cx="${x}" cy="${y}" r="7" fill="${SUN}" stroke="#fff" stroke-width="3"/>
-    <text class="lbl" x="${x+(L?-15:15)}" y="${y+6}" text-anchor="${L?'end':'start'}" font-size="19" font-weight="800" fill="${PINE}" stroke="#fff6e8" stroke-width="5" paint-order="stroke" stroke-linejoin="round" style="animation-delay:${.5+i*.35}s">${s[0]}</text></g>`});
-  h+=`<circle r="9" fill="#fff" stroke="${PINE}" stroke-width="4"><animateMotion dur="11s" repeatCount="indefinite" rotate="auto"><mpath href="#route"/></animateMotion></circle>`;
+  const ICON={
+    bike:c=>`<circle r="12.5" fill="#fff" stroke="${c}" stroke-width="2.5"/><g fill="none" stroke="${c}" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="-5.5" cy="3" r="3.5"/><circle cx="5.5" cy="3" r="3.5"/><path d="M-5.5 3-1.5-3.2H3.2L5.5 3M-1.5-3.2.8 3M3.2-3.2 2.4-5.8H4.8"/></g>`,
+    train:c=>`<rect x="-16" y="-8.5" width="32" height="15" rx="5" fill="${c}" stroke="#fff" stroke-width="2.4"/><g fill="#fff"><rect x="-12" y="-5.5" width="7" height="5.5" rx="1.4"/><rect x="-3.5" y="-5.5" width="7" height="5.5" rx="1.4"/><rect x="5" y="-5.5" width="7" height="5.5" rx="1.4"/></g><g fill="#fff" stroke="${c}" stroke-width="1.4"><circle cx="-8" cy="8.6" r="2.4"/><circle cx="8" cy="8.6" r="2.4"/></g>`,
+    bus:c=>`<rect x="-13.5" y="-8.5" width="27" height="15.5" rx="4" fill="${c}" stroke="#fff" stroke-width="2.4"/><g fill="#fff"><rect x="-10" y="-5.5" width="6" height="5" rx="1.2"/><rect x="-2.5" y="-5.5" width="6" height="5" rx="1.2"/><rect x="5" y="-5.5" width="5" height="9" rx="1.2"/></g><g fill="#fff" stroke="${c}" stroke-width="1.4"><circle cx="-7" cy="8.6" r="2.5"/><circle cx="7" cy="8.6" r="2.5"/></g>`};
+  const R=[
+    {id:'bike',c:'#2b8fb3',dur:16,begin:0,dash:'3 8',dl:11,side:'r',pts:[['ঢাকা',23.81,90.41],['মাদারীপুর',23.17,90.2],['বরিশাল',22.7,90.37],['পটুয়াখালী',22.36,90.33],['কুয়াকাটা',21.82,90.12]]},
+    {id:'train',c:'#5b6b61',dur:11,begin:1.2,side:'r',pts:[['ঢাকা',23.81,90.41],['টাঙ্গাইল',24.25,89.92],['বগুড়া',24.85,89.37],['রংপুর',25.75,89.25]]},
+    {id:'bus',c:'#b5446e',dur:14,begin:2.4,dash:'10 7',dl:17,side:'l',pts:[['ঢাকা',23.81,90.41],['ফরিদপুর',23.6,89.84],['যশোর',23.17,89.21],['খুলনা',22.82,89.55]]}];
+  const seen=new Set(['পঞ্চগড়','রাজশাহী','ঢাকা','সিলেট','চট্টগ্রাম','কক্সবাজার'].map(N)),light=new Set(['মাদারীপুর','বরিশাল','পটুয়াখালী','টাঙ্গাইল','বগুড়া','রংপুর','ফরিদপুর','যশোর','খুলনা'].map(N));
+  let h=MAP.districts.map(([n,p])=>`<path d="${p}" fill="${seen.has(N(n))?GREEN:light.has(N(n))?'#a5d4b2':BEIGE}" stroke="#f8f4ea" stroke-width=".9" stroke-linejoin="round"/>`).join('');
+  const halo=`stroke="#fff6e8" stroke-width="4.5" paint-order="stroke" stroke-linejoin="round"`;
+  R.forEach((r,ri)=>{
+    const P=r.pts.map(q=>pt(q[1],q[2])),d=curve(P),e=P[P.length-1],L=r.side==='l';
+    h+=`<g class="route-g" data-r="${r.id}">`;
+    h+=r.id==='train'?`<path id="rt-train" d="${d}" fill="none" stroke="${r.c}" stroke-width="5" stroke-linecap="round"/><path d="${d}" fill="none" stroke="#fff" stroke-width="2.2" stroke-dasharray="2 7"/>`
+      :`<path id="rt-${r.id}" d="${d}" fill="none" stroke="${r.c}" stroke-opacity=".28" stroke-width="6" stroke-linecap="round"/><path class="rt-dash2" style="--dl:${r.dl}" d="${d}" fill="none" stroke="${r.c}" stroke-width="3" stroke-linecap="round" stroke-dasharray="${r.dash}"/>`;
+    P.slice(1).forEach(q=>{h+=`<circle cx="${q[0]}" cy="${q[1]}" r="4.5" fill="#fff" stroke="${r.c}" stroke-width="2.5"/>`});
+    h+=`<text class="lbl" x="${e[0]+(L?-12:12)}" y="${e[1]+5}" text-anchor="${L?'end':'start'}" font-size="16" font-weight="800" fill="${r.c}" ${halo} style="animation-delay:${2.6+ri*.3}s">${r.pts[r.pts.length-1][0]}</text>`;
+    const m=P[Math.min(2,P.length-1)];
+    h+=still?`<g transform="translate(${m[0]} ${m[1]}) scale(1.1)">${ICON[r.id](r.c)}</g>`:`<g transform="scale(1.1)">${ICON[r.id](r.c)}</g>`;
+    h+='</g>';
+  });
+  // the main journey: Tetulia -> Teknaf
+  const P=stops.map(q=>pt(q[1],q[2])),d=curve(P);
+  h+=`<g class="route-g" data-r="main"><path id="route" d="${d}" fill="none" stroke="${SUN}" stroke-opacity=".28" stroke-width="7" stroke-linecap="round"/><path class="rt-dash" d="${d}" fill="none" stroke="${SUN}" stroke-width="3.2" stroke-linecap="round" stroke-dasharray="7 9"/>`;
+  stops.forEach((q,i)=>{const[x,y]=P[i],L=q[3]==='l';
+    h+=`<circle class="ring" cx="${x}" cy="${y}" r="9" fill="${SUN}" style="animation-delay:${i*.35}s"/><circle cx="${x}" cy="${y}" r="7" fill="${SUN}" stroke="#fff" stroke-width="3"/>
+    <text class="lbl" x="${x+(L?-15:15)}" y="${y+6}" text-anchor="${L?'end':'start'}" font-size="19" font-weight="800" fill="${PINE}" ${halo} style="animation-delay:${.5+i*.35}s">${q[0]}</text>`});
+  h+=still?`<circle cx="${P[P.length-1][0]}" cy="${P[P.length-1][1]}" r="9" fill="#fff" stroke="${PINE}" stroke-width="4"/></g>`:`<circle r="9" fill="#fff" stroke="${PINE}" stroke-width="4"><animateMotion dur="11s" repeatCount="indefinite" rotate="auto"><mpath href="#route"/></animateMotion></circle></g>`;
   $('#heroArt').innerHTML=h;
+  if(!still)R.forEach(r=>{ // attach each vehicle to its own road
+    const g=$('#heroArt').querySelector(`[data-r="${r.id}"] > g`),am=document.createElementNS(NS,'animateMotion');
+    am.setAttribute('dur',r.dur+'s');am.setAttribute('begin',r.begin+'s');am.setAttribute('repeatCount','indefinite');
+    const mp=document.createElementNS(NS,'mpath');mp.setAttribute('href','#rt-'+r.id);am.append(mp);g.append(am);
+  });
+  const art=$('#heroArt');
+  document.querySelectorAll('#heroLegend button').forEach(b=>{
+    const on=()=>{art.classList.add('dim');const g=art.querySelector(`[data-r="${b.dataset.r}"]`);g&&g.classList.add('hl')},off=()=>{art.classList.remove('dim');art.querySelectorAll('.hl').forEach(g=>g.classList.remove('hl'))};
+    b.addEventListener('mouseenter',on);b.addEventListener('focus',on);b.addEventListener('mouseleave',off);b.addEventListener('blur',off);
+  });
 })();
 
 /* ---------- photo library ---------- */
@@ -199,6 +236,9 @@ function advance(){
   if(!nx)return;selected.clear();selected.add(nx.id);anchor=nx.id;syncSelUI();goTo(nx);nx.el.scrollIntoView({block:'nearest',behavior:'smooth'});eDist.focus();
 }
 function goTo(it){const idx=album().indexOf(it);if(idx<0)return draw();const p=Math.floor(idx/per());if(p!==page){page=p;animNext=true}draw()}
+const pct=v=>bn(Math.round(+v))+'%';
+function syncVals(){[['gsize','gval'],['szoom','zval'],['ssize','sval'],['eSize','evalOut']].forEach(([a,b])=>{$('#'+b).textContent=pct($('#'+a).value)})}
+document.addEventListener('input',e=>{if(e.target.type==='range')syncVals()});
 function syncSelUI(){
   items.forEach(it=>it.el&&it.el.classList.toggle('sel',selected.has(it.id)));
   const n=selected.size,sl=items.filter(i=>selected.has(i.id));$('#editor').hidden=!n;
@@ -211,7 +251,7 @@ function syncSelUI(){
   const one=selOne(),on=!!(one&&curItems().includes(one));
   $('#selbar').hidden=!on;$('#hint').hidden=!!on;$('#hint').textContent=theme()==='map'?'ছবিতে ক্লিক করে বেছে নিন, তারপর টেনে সরান ও স্ক্রল করে জুম করুন। মানচিত্রে জেলার ওপর মাউস রাখলে নাম দেখা যাবে।':'ছবিতে ক্লিক করে বেছে নিন, তারপর টেনে সরান ও স্ক্রল করে জুম করুন।';
   if(on){$('#selname').textContent=one.place.trim()||`ছবি ${bn(items.indexOf(one)+1)}`;$('#ssize').value=one.size;$('#szoom').value=Math.round(one.zoom*100)}
-  place();
+  syncVals();place();
 }
 $('#tiles').addEventListener('click',e=>{
   const t=e.target.closest('.tile');if(!t)return;const id=+t.dataset.id,add=e.ctrlKey||e.metaKey||e.target.closest('.chk');
@@ -242,6 +282,8 @@ document.querySelectorAll('[name=shape]').forEach(r=>r.onchange=()=>{shape=r.val
 DIVISIONS.forEach(d=>{const o=document.createElement('option');o.value=d;o.textContent=`${d} বিভাগ`;$('#scope').append(o)});
 function autoTitle(){if(!titleEdited)$('#title').value=scope?`${scope} বিভাগের আনাচে-কানাচে`:DEFAULT_TITLE}
 $('#scope').onchange=e=>{scope=e.target.value;autoTitle();selected.clear();page=0;animNext=true;updateOut();syncSelUI();draw()};
+const palBox=$('#palBox');palBox.innerHTML='<span class="pal-t">রঙের থিম</span>'+Object.entries(PALS).map(([k,v])=>`<label><input type="radio" name="pal" value="${k}"${k===pal?' checked':''}><i style="--a:${v.bg};--b:${v.base};--c:${v.visited};--d:${v.line}"></i><span>${v.name}</span></label>`).join('');
+document.querySelectorAll('[name=pal]').forEach(r=>r.onchange=()=>{pal=r.value;animNext=true;draw()});
 $('#perMap').onchange=e=>{perMap=+e.target.value;page=0;animNext=true;draw()};
 $('#title').oninput=()=>{titleEdited=true;draw()};$('#gsize').oninput=e=>{G=e.target.value/100;draw()};
 $('#prev').onclick=()=>{page=Math.max(0,page-1);animNext=true;draw()};
@@ -291,29 +333,29 @@ function shapePath(sh,px,py,w,h){
 }
 function card(x,img,px,py,w,h,fancy,sh='rect',cr={}){ // cr = {z: zoom, fx/fy: where the photo sits inside the shape}
   const path=shapePath(sh,px,py,w,h);
-  if(fancy){x.save();x.shadowColor='rgba(20,56,43,.3)';x.shadowBlur=22;x.shadowOffsetY=8;x.fillStyle='#fff';x.fill(path);x.restore()}
+  if(fancy){x.save();x.shadowColor='rgba(20,56,43,.3)';x.shadowBlur=22;x.shadowOffsetY=8;x.fillStyle=PAL().cardEdge;x.fill(path);x.restore()}
   const s=Math.max(w/img.width,h/img.height)*(cr.z||1),iw=img.width*s,ih=img.height*s;
   x.save();x.clip(path);x.drawImage(img,px+(w-iw)*(cr.fx??.5),py+(h-ih)*(cr.fy??.3),iw,ih);x.restore();
-  if(fancy){x.lineWidth=5;x.lineJoin='round';x.strokeStyle='#fff';x.stroke(path)}
+  if(fancy){x.lineWidth=5;x.lineJoin='round';x.strokeStyle=PAL().cardEdge;x.stroke(path)}
   return{iw,ih};
 }
 function pill(x,t,cx,cy,maxW,size){ // place name as a small label on the card
   let w;do{x.font=`800 ${size}px ${FONT}`;w=x.measureText(t).width+22;size--}while(w>maxW&&size>10);
-  const h=size*1.8+6;x.fillStyle='rgba(255,255,255,.92)';x.beginPath();x.roundRect(cx-w/2,cy-h/2,w,h,h/2);x.fill();
-  x.fillStyle=PINE;x.textAlign='center';x.textBaseline='middle';x.fillText(t,cx,cy+1);x.textBaseline='alphabetic';
+  const h=size*1.8+6;x.fillStyle=PAL().pillBg;x.beginPath();x.roundRect(cx-w/2,cy-h/2,w,h,h/2);x.fill();
+  x.fillStyle=PAL().pillInk;x.textAlign='center';x.textBaseline='middle';x.fillText(t,cx,cy+1);x.textBaseline='alphabetic';
 }
 const chunk=(a,n)=>Array.from({length:Math.ceil(a.length/n)},(_,i)=>a.slice(i*n,i*n+n));
 const rowX=(n,w,gap,W)=>Array.from({length:n},(_,i)=>(W-n*w-(n-1)*gap)/2+i*(w+gap));
 function drawGrid(list,t,p,pages){
-  const W=1820,rows=chunk(list,5),H=380+(rows.length-1)*880+790+(pages>1?50:0),[c,x]=mk(W,H);c._rects=[];
-  fit(x,t,W/2,170,W-120,100,30);
-  rows.forEach((r,ri)=>rowX(r.length,345,15,W).forEach((px,i)=>{const top=380+ri*880,o=r[i];if(o.place)fit(x,o.place,px+172.5,top-25,340,56,12);const g=card(x,o.img,px,top,345,760,false,'rect',o);c._rects.push({id:o.id,x:px,y:top,w:345,h:760,iw:g.iw,ih:g.ih,rad:345*.16})}));
-  foot(x,W,H,p,pages,'#777');return c;
+  const W=1820,rows=chunk(list,5),H=380+(rows.length-1)*880+790+(pages>1?50:0),[c,x]=mk(W,H,PAL().plain);c._rects=[];
+  fit(x,t,W/2,170,W-120,100,30,PAL().ink);
+  rows.forEach((r,ri)=>rowX(r.length,345,15,W).forEach((px,i)=>{const top=380+ri*880,o=r[i];if(o.place)fit(x,o.place,px+172.5,top-25,340,56,12,PAL().ink);const g=card(x,o.img,px,top,345,760,false,'rect',o);c._rects.push({id:o.id,x:px,y:top,w:345,h:760,iw:g.iw,ih:g.ih,rad:345*.16})}));
+  foot(x,W,H,p,pages,PAL().footPlain);return c;
 }
 function drawSlides(list,p,pages){
-  const[c,x]=mk(1920,1080);c._rects=[];
-  rowX(list.length,360,18,1920).forEach((px,i)=>{const o=list[i];if(o.place)fit(x,o.place,px+180,150,350,56,12);const g=card(x,o.img,px,170,360,800,false,'rect',o);c._rects.push({id:o.id,x:px,y:170,w:360,h:800,iw:g.iw,ih:g.ih,rad:360*.16})});
-  foot(x,1920,1080,p,pages,'#777');return c;
+  const[c,x]=mk(1920,1080,PAL().plain);c._rects=[];
+  rowX(list.length,360,18,1920).forEach((px,i)=>{const o=list[i];if(o.place)fit(x,o.place,px+180,150,350,56,12,PAL().ink);const g=card(x,o.img,px,170,360,800,false,'rect',o);c._rects.push({id:o.id,x:px,y:170,w:360,h:800,iw:g.iw,ih:g.ih,rad:360*.16})});
+  foot(x,1920,1080,p,pages,PAL().footPlain);return c;
 }
 function crossing(a,b,c,d){const o=(p,q,r)=>(q[0]-p[0])*(r[1]-p[1])-(q[1]-p[1])*(r[0]-p[0]);return o(a,b,c)*o(a,b,d)<0&&o(c,d,a)*o(c,d,b)<0}
 const ram=(a,b)=>Math.PI*(3*(a+b)-Math.sqrt((3*a+b)*(a+3*b))); // ellipse perimeter
@@ -321,9 +363,9 @@ function drawMap(list,t,visited,pg,pages){
   const W=1900,n=list.length,m=50,titleH=200,V=viewOf(scope),rho=Math.max(.8,Math.min(1.25,Math.sqrt(V.w/V.h))),circ=shape==='circle';
   const Rx0=(W-2*m-240)/2,d=Math.min(circ?300:280,.9*ram(Rx0,Rx0/rho)/Math.max(n,3));
   list.forEach(o=>{const f=o.size*G;o.w=(circ?d:d*.78)*f;o.h=(circ?d:d*1.05)*f});
-  const ext=Math.max(200,...list.map(o=>Math.max(o.w,o.h))),Rx=(W-2*m-ext)/2,Ry=Rx/rho,cx=W/2,cy=titleH+ext/2+Ry,H=Math.round(titleH+ext+2*Ry+m+(pages>1?40:0)),[c,x]=mk(W,H,CREAM);
+  const ext=Math.max(200,...list.map(o=>Math.max(o.w,o.h))),Rx=(W-2*m-ext)/2,Ry=Rx/rho,cx=W/2,cy=titleH+ext/2+Ry,H=Math.round(titleH+ext+2*Ry+m+(pages>1?40:0)),[c,x]=mk(W,H,PAL().bg);
   const ax=Rx-ext/2-26,ay=Ry-ext/2-26,s=Math.min(8,(scope?1:1.12)/Math.hypot(V.w/2/ax,V.h/2/ay)),ox=cx-(V.x0+V.w/2)*s,oy=cy-(V.y0+V.h/2)*s;
-  fit(x,t,W/2,125,W-200,100,30,PINE);
+  fit(x,t,W/2,125,W-200,100,30,PAL().title);
   list.forEach(o=>{if(o.pt){o.mx=ox+o.pt.x*s;o.my=oy+o.pt.y*s}});
   // slots on the ring, clockwise from the top
   const N=Math.max(n,1),S=Array.from({length:N},(_,k)=>{const a=-Math.PI/2+2*Math.PI*k/N;return[cx+Rx*Math.cos(a),cy+Ry*Math.sin(a)]});
@@ -335,20 +377,20 @@ function drawMap(list,t,visited,pg,pages){
   const score=()=>{let k=0,l=0;for(let i=0;i<n;i++){const a=ord[i];if(!a.pt)continue;l+=Math.hypot(S[i][0]-a.mx,S[i][1]-a.my);for(let j=i+1;j<n;j++){const b=ord[j];if(b.pt&&crossing(S[i],[a.mx,a.my],S[j],[b.mx,b.my]))k++}}return[k,l]};
   let best=score();
   for(let pass=0;pass<40&&n>2;pass++){let imp=0;for(let i=0;i<n;i++){const j=(i+1)%n;[ord[i],ord[j]]=[ord[j],ord[i]];const sc=score();if(sc[0]<best[0]||(sc[0]===best[0]&&sc[1]<best[1]-1e-6)){best=sc;imp=1}else[ord[i],ord[j]]=[ord[j],ord[i]]}if(!imp)break}
-  if(!n){x.save();x.setLineDash([16,14]);x.strokeStyle='#cdbf9f';x.lineWidth=4;x.beginPath();x.ellipse(cx,cy,Rx,Ry,0,0,7);x.stroke();x.restore()}
-  x.save();x.translate(ox,oy);x.scale(s,s);x.strokeStyle='#f8f4ea';x.lineWidth=1.1/s;x.lineJoin='round';
-  DP.forEach((p,i)=>{if(scope&&DDIVI[i]!==scope)return;x.fillStyle=visited.has(DN[i])?GREEN:BEIGE;x.fill(p);x.stroke(p)});x.restore();
-  x.strokeStyle=SUN;x.lineWidth=3;x.lineCap='round';
+  if(!n){x.save();x.setLineDash([16,14]);x.strokeStyle=PAL().dash;x.lineWidth=4;x.beginPath();x.ellipse(cx,cy,Rx,Ry,0,0,7);x.stroke();x.restore()}
+  x.save();x.translate(ox,oy);x.scale(s,s);x.strokeStyle=PAL().edge;x.lineWidth=1.1/s;x.lineJoin='round';
+  DP.forEach((p,i)=>{if(scope&&DDIVI[i]!==scope)return;x.fillStyle=visited.has(DN[i])?PAL().visited:PAL().base;x.fill(p);x.stroke(p)});x.restore();
+  x.strokeStyle=PAL().line;x.lineWidth=3;x.lineCap='round';
   ord.forEach((o,i)=>{if(!o.pt)return;x.beginPath();x.moveTo(S[i][0],S[i][1]);x.lineTo(o.mx,o.my);x.stroke()}); // cards are drawn on top, hiding the inner part
   c._rects=[];c._map={x:ox+V.x0*s,y:oy+V.y0*s,w:V.w*s,h:V.h*s,V,scope};
-  if(!n){x.fillStyle='#8a948c';x.font=`700 40px ${FONT}`;x.textAlign='center';x.fillText('এখানে আপনার ছবিগুলো বসবে',cx,titleH+60)}
+  if(!n){x.fillStyle=PAL().hint;x.font=`700 40px ${FONT}`;x.textAlign='center';x.fillText('এখানে আপনার ছবিগুলো বসবে',cx,titleH+60)}
   ord.forEach((o,i)=>{
     const px=S[i][0]-o.w/2,py=S[i][1]-o.h/2,g=card(x,o.img,px,py,o.w,o.h,true,shape,o);
     c._rects.push({id:o.id,x:px,y:py,w:o.w,h:o.h,iw:g.iw,ih:g.ih,rad:circ?'c':o.w*.16});
     if(o.place)pill(x,o.place,S[i][0],py+o.h-(circ?o.h*.2:o.h*.09),circ?o.w*.64:o.w*.92,Math.max(13,Math.min(26,o.w*.1)));
   });
-  ord.forEach(o=>{if(o.pt){x.beginPath();x.arc(o.mx,o.my,8,0,7);x.fillStyle=SUN;x.fill();x.strokeStyle='#fff';x.lineWidth=2.5;x.stroke()}});
-  foot(x,W,H,pg,pages,'#8a948c');return c;
+  ord.forEach(o=>{if(o.pt){x.beginPath();x.arc(o.mx,o.my,8,0,7);x.fillStyle=PAL().line;x.fill();x.strokeStyle=PAL().ring;x.lineWidth=2.5;x.stroke()}});
+  foot(x,W,H,pg,pages,PAL().foot);return c;
 }
 function pointsFor(slice,list){ // every point is forced inside its district; photos sharing a spot are fanned out *inside* it
   const seen=[];
@@ -476,13 +518,13 @@ $('#bigbtn').onclick=()=>{
 $('#bigclose').onclick=()=>$('#big').close();
 
 /* ---------- .pix project files ---------- */
-const snap=()=>JSON.stringify([items.map(i=>[i.id,i.place,i.d,i.size,i.zoom,i.fx,i.fy]),$('#title').value,theme(),perMap,G,shape,scope]);
+const snap=()=>JSON.stringify([items.map(i=>[i.id,i.place,i.d,i.size,i.zoom,i.fx,i.fy]),$('#title').value,theme(),perMap,G,shape,scope,pal]);
 let savedSnap=snap();
 addEventListener('beforeunload',e=>{if(items.length&&snap()!==savedSnap){e.preventDefault();e.returnValue=''}});
 $('#savePix').onclick=async()=>{
   if(!items.length)return flash('আগে কিছু ছবি যোগ করুন, তারপর সেভ করুন।');
   const btn=$('#savePix');btn.disabled=true;
-  const meta={format:'pix',version:3,app:'gontobbohin',saved:new Date().toISOString(),title:$('#title').value,titleEdited,theme:theme(),shape,scope,perMap,gsize:G,photos:[],geo:{}},files=[];
+  const meta={format:'pix',version:3,app:'gontobbohin',saved:new Date().toISOString(),title:$('#title').value,titleEdited,theme:theme(),shape,scope,palette:pal,perMap,gsize:G,photos:[],geo:{}},files=[];
   for(const[i,it]of items.entries()){
     const name=`images/${String(i+1).padStart(3,'0')}.jpg`;
     files.push({name,data:new Uint8Array(await it.blob.arrayBuffer())});
@@ -509,7 +551,7 @@ $('#pixIn').onchange=async e=>{
     prog(0,0);items=fresh;selected.clear();page=0;
     titleEdited=!!meta.titleEdited;$('#title').value=meta.title||DEFAULT_TITLE;G=+meta.gsize||1;$('#gsize').value=G*100;perMap=[8,12,16,20,24].includes(+meta.perMap)?+meta.perMap:16;$('#perMap').value=perMap;
     scope=DIVISIONS.includes(meta.scope)?meta.scope:'';$('#scope').value=scope;
-    const sr=document.querySelector(`[name=shape][value=${SHAPES[meta.shape]?meta.shape:'rect'}]`);sr.checked=true;shape=sr.value;
+    const sr=document.querySelector(`[name=shape][value=${SHAPES[meta.shape]?meta.shape:'rect'}]`);sr.checked=true;shape=sr.value;pal=PALS[meta.palette]?meta.palette:'classic';document.querySelector(`[name=pal][value=${pal}]`).checked=true;
     const r=document.querySelector(`[name=theme][value=${meta.theme}]`)||document.querySelector('[name=theme][value=map]');r.checked=true;document.body.dataset.theme=theme();setDesc();
     Object.assign(cache,meta.geo||{});try{localStorage.setItem('geo',JSON.stringify(cache))}catch{}
     animNext=true;renderLib();items.forEach(want);draw();savedSnap=snap();flash(`${bn(items.length)}টি ছবিসহ প্রজেক্ট খোলা হয়েছে।`);
