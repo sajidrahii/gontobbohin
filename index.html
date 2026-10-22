@@ -91,18 +91,19 @@
         <div class="shapes" role="radiogroup" aria-label="কার্ডের আকৃতি">
           <label><input type="radio" name="shape" value="rect" checked><svg viewBox="0 0 40 40"><rect x="9" y="3" width="22" height="34" rx="6"/></svg><span>আয়তক্ষেত্র</span></label>
           <label><input type="radio" name="shape" value="circle"><svg viewBox="0 0 40 40"><circle cx="20" cy="20" r="16"/></svg><span>বৃত্ত</span></label>
-          <label><input type="radio" name="shape" value="triangle"><svg viewBox="0 0 40 40"><path d="M20 4 36 35H4Z"/></svg><span>ত্রিভুজ</span></label>
-          <label><input type="radio" name="shape" value="hexagon"><svg viewBox="0 0 40 40"><path d="M20 3 35 12v16L20 37 5 28V12Z"/></svg><span>ষড়ভুজ</span></label>
-          <label><input type="radio" name="shape" value="diamond"><svg viewBox="0 0 40 40"><path d="M20 3 36 20 20 37 4 20Z"/></svg><span>ডায়মন্ড</span></label>
         </div></div>
-      <label class="field sz">প্রতি পাতায় ছবি <select id="perMap"><option>5</option><option>8</option><option selected>10</option><option>12</option></select></label>
+      <label class="field sz">প্রতি পাতায় ছবি <select id="perMap"><option>8</option><option>12</option><option selected>16</option><option>20</option><option>24</option></select></label>
       <label class="field sz">সব ছবির আকার <input id="gsize" type="range" min="50" max="200" value="100"></label>
     </div>
 
     <div id="preview" class="card panel sticky reveal" style="--d:.1s">
       <div class="ph"><b class="num">৩</b><h3>লাইভ প্রিভিউ ও ডাউনলোড</h3><button id="bigbtn" type="button" class="ghost">বড় করে দেখুন</button></div>
       <p id="hint" class="note" hidden>মানচিত্রে জেলার ওপর মাউস রাখলে নাম দেখা যাবে। ছবিতে ক্লিক করে কোণার বিন্দু টেনে আকার বদলান।</p>
-      <div id="selbar" class="selbar" hidden><b id="selname"></b><input id="ssize" type="range" min="50" max="200" aria-label="নির্বাচিত ছবির আকার"><button id="desel" type="button" class="ghost"><span aria-hidden="true">✕</span> বাতিল</button></div>
+      <div id="selbar" class="selbar" hidden><b id="selname"></b>
+        <label class="mini">জুম <input id="szoom" type="range" min="100" max="400" aria-label="ছবির জুম"></label>
+        <label class="mini sz">কার্ড <input id="ssize" type="range" min="50" max="200" aria-label="কার্ডের আকার"></label>
+        <button id="sreset" type="button" class="ghost sm"><span aria-hidden="true">↺</span> রিসেট</button>
+        <button id="desel" type="button" class="ghost sm"><span aria-hidden="true">✕</span> বাতিল</button></div>
       <div id="pager" class="pager" hidden><button id="prev" type="button" class="ghost" aria-label="আগের পাতা">‹</button><span id="pageInfo"></span><button id="next" type="button" class="ghost" aria-label="পরের পাতা">›</button></div>
       <p id="status" role="status"></p>
       <div id="out"></div>

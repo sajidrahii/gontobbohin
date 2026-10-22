@@ -237,3 +237,15 @@ kbd{font:inherit;font-size:13px;font-weight:700;padding:0 7px;border:1px solid v
 #scopeNote:empty{display:none}
 #scopeNote{margin:6px 0 0}
 @media(max-width:700px){.shapes{grid-template-columns:repeat(5,1fr);gap:4px}.shapes label span{font-size:11px}.clist li span{display:none}}
+
+/* ---- v1.1: two shapes, ring layout, crop controls ---- */
+.shapes{grid-template-columns:repeat(2,1fr)}
+.shapes label{flex-direction:row}
+.selbox{pointer-events:auto;cursor:grab;touch-action:none;animation:none}
+.selbox.drag{cursor:grabbing}
+.selbox .hd{display:none}
+[data-theme=map] .selbox .hd{display:block}
+.selbar .mini{display:flex;align-items:center;gap:8px;flex:1;min-width:150px;font-weight:700;font-size:15px;color:var(--pine)}
+.selbar .mini input{flex:1;min-width:70px;width:auto}
+.selbar .sz{display:none}
+[data-theme=map] .selbar .sz{display:flex}
