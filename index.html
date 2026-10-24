@@ -8,9 +8,9 @@
 <script>document.documentElement.className='js'</script>
 <link rel="stylesheet" href="style.css">
 </head>
-<body>
+<body data-tab="photos">
 <nav class="bar" aria-label="প্রধান মেনু">
-  <a class="logo" href="#top">গন্তব্যহীন v1.0.2</a>
+  <a class="logo" href="#top">গন্তব্যহীন</a>
   <ul><li><a href="#top">হোম</a></li><li><a href="#builder">অ্যালবাম বানান</a></li><li><a href="#preview">ডাউনলোড</a></li></ul>
 </nav>
 
@@ -36,7 +36,8 @@
 <section id="builder" class="studio">
   <header class="sec-head reveal"><h2>অ্যালবাম বানান</h2><p>ছবি সাজান আর সঙ্গে সঙ্গে লাইভ প্রিভিউ দেখুন।</p></header>
   <div class="work">
-    <div class="card panel reveal">
+    <div class="card panel reveal" id="builderCard">
+      <div class="step step1">
       <div class="ph"><b class="num">১</b><h3>ছবি যোগ করুন</h3><span id="count" class="pill">০ / ২০০</span></div>
       <div class="tools">
         <button id="openPix" type="button" class="ghost">📂 প্রজেক্ট খুলুন</button>
@@ -62,7 +63,7 @@
         </div>
         <p class="note">ছবি বাছতে ক্লিক করুন। একসাথে অনেক: <b>Shift</b> চেপে ক্লিক (ক্রমানুসারে) বা <b>Ctrl</b> চেপে ক্লিক (একটি একটি) — অথবা ছবির কোণার টিক ঘর।</p>
         <div id="editor" class="editor" hidden>
-          <div class="ehead"><b id="eTitle"></b><button id="eClear" type="button" class="ghost sm"><span aria-hidden="true">✕</span> বাতিল</button></div>
+          <div class="ehead"><span class="mnav mob-only"><button id="ePrev" type="button" class="round" aria-label="আগের ছবি">‹</button><button id="eNext" type="button" class="round" aria-label="পরের ছবি">›</button></span><b id="eTitle"></b><button id="eClear" type="button" class="ghost sm"><span aria-hidden="true">✕</span> বাতিল</button><button id="eDone" type="button" class="cta mob-only">✓ সম্পন্ন</button></div>
           <div class="erow">
             <div class="combo" id="eDistBox">
               <input id="eDist" role="combobox" aria-expanded="false" aria-controls="eDistList" aria-autocomplete="list" autocomplete="off" placeholder="জেলা — টাইপ করুন বা বাছুন" aria-label="জেলা">
@@ -72,12 +73,16 @@
             <input id="ePlace" placeholder="জায়গার নাম (ঐচ্ছিক)" aria-label="জায়গার নাম (ঐচ্ছিক)">
           </div>
           <p class="hintline">জেলা লিখে <kbd>Enter</kbd> চাপলে পরের ছবিতে চলে যাবে। বাংলা বা ইংরেজি — দুভাবেই খোঁজা যায়।</p>
-          <label class="esize sz">আকার <output id="evalOut" class="val"></output> <input id="eSize" type="range" min="50" max="200"></label>
-          <button id="eDel" type="button" class="danger sm">মুছে ফেলুন</button>
+          <label class="ezoom mob-only">জুম <output id="ezval" class="val"></output> <input id="eZoom" type="range" min="100" max="400" aria-label="ছবির জুম"></label>
+          <label class="esize sz">আকার <output id="evalOut" class="val"></output> <input id="eSize" type="range" min="50" max="200" aria-label="কার্ডের আকার"></label>
+          <div class="ebtns"><button id="eReset" type="button" class="ghost sm mob-only"><svg class="ico" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path d="M4.5 12a7.5 7.5 0 1 0 2.6-5.7M4.5 4.5v4.8h4.8" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg> ছবি রিসেট</button><button id="eDel" type="button" class="danger sm">মুছে ফেলুন</button></div>
         </div>
         <div id="tiles" class="tiles" aria-label="ছবির তালিকা"></div>
+        <button id="toPreview" type="button" class="cta mob-only">প্রিভিউতে ছবি সাজান →</button>
       </div>
 
+      </div>
+      <div class="step step2">
       <div class="ph"><b class="num">২</b><h3>থিম বেছে নিন</h3></div>
       <div class="seg" role="radiogroup" aria-label="থিম"><span class="ind"></span>
         <label><input type="radio" name="theme" value="map" checked><span>ম্যাপ</span></label>
@@ -87,7 +92,7 @@
       <p id="themeDesc" class="muted fade in"></p>
       <label class="field">অ্যালবামের পরিধি <select id="scope"><option value="">সারা বাংলাদেশ</option></select></label>
       <p id="scopeNote" class="note"></p>
-      <label class="field">শিরোনাম <input id="title" value="বাংলাদেশের আনাচে-কানাচে আমি"></label>
+      <label class="field">শিরোনাম <input id="title" value="বাংলাদেশের আনাচে-কানাচে"></label>
       <div class="field sz"><span>কার্ডের আকৃতি</span>
         <div class="shapes" role="radiogroup" aria-label="কার্ডের আকৃতি">
           <label><input type="radio" name="shape" value="rect" checked><svg viewBox="0 0 40 40"><rect x="9" y="3" width="22" height="34" rx="6"/></svg><span>আয়তক্ষেত্র</span></label>
@@ -95,16 +100,19 @@
         </div></div>
       <label class="field sz">প্রতি পাতায় ছবি <select id="perMap"><option>8</option><option>12</option><option selected>16</option><option>20</option><option>24</option></select></label>
       <div class="field sz"><label for="gsize" class="lab">সব ছবির আকার <output id="gval" class="val" for="gsize">১০০%</output></label><input id="gsize" type="range" min="50" max="200" value="100"></div>
+    <button id="toPreview2" type="button" class="cta mob-only">প্রিভিউ দেখুন →</button>
+      </div>
     </div>
 
     <div id="preview" class="card panel sticky reveal" style="--d:.1s">
       <div class="ph"><b class="num">৩</b><h3>লাইভ প্রিভিউ ও ডাউনলোড</h3><button id="bigbtn" type="button" class="ghost">বড় করে দেখুন</button></div>
+      <div class="mbar mob-only"><button id="mAdd" type="button" class="ghost">＋ ছবি যোগ</button><button id="mTodo" type="button" class="ghost" hidden>জেলা বাছুন</button></div>
       <div class="pal" id="palBox" role="radiogroup" aria-label="রঙের থিম"></div>
       <p id="hint" class="note" hidden>মানচিত্রে জেলার ওপর মাউস রাখলে নাম দেখা যাবে। ছবিতে ক্লিক করে কোণার বিন্দু টেনে আকার বদলান।</p>
       <div id="selbar" class="selbar" hidden><b id="selname"></b>
         <label class="mini">জুম <output id="zval" class="val"></output> <input id="szoom" type="range" min="100" max="400" aria-label="ছবির জুম"></label>
         <label class="mini sz">কার্ড <output id="sval" class="val"></output> <input id="ssize" type="range" min="50" max="200" aria-label="কার্ডের আকার"></label>
-        <button id="sreset" type="button" class="ghost sm"><span aria-hidden="true">↺</span> রিসেট</button>
+        <button id="sreset" type="button" class="ghost sm"><svg class="ico" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path d="M4.5 12a7.5 7.5 0 1 0 2.6-5.7M4.5 4.5v4.8h4.8" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg> রিসেট</button>
         <button id="desel" type="button" class="ghost sm"><span aria-hidden="true">✕</span> বাতিল</button></div>
       <div id="pager" class="pager" hidden><button id="prev" type="button" class="ghost" aria-label="আগের পাতা">‹</button><span id="pageInfo"></span><button id="next" type="button" class="ghost" aria-label="পরের পাতা">›</button></div>
       <p id="status" role="status"></p>
@@ -113,7 +121,9 @@
   </div>
 </section>
 </main>
-<footer class="foot">গন্তব্যহীন v1.0.2 · Vibe Coded by সাজিদ আহমেদ রাহী · Dept. of IoT & Robotics Engineering, UFTB</footer>
+<footer class="foot">গন্তব্যহীন v1.0.3 · Vibe Coded by সাজিদ আহমেদ রাহী · Dept. of IoT & Robotics Engineering, UFTB</footer>
+<nav class="mtabs" id="mtabs" aria-label="ধাপ"><button type="button" data-tab="photos" class="on"><b>১</b><span>ছবি <em id="tabCount"></em></span></button><button type="button" data-tab="settings"><b>২</b><span>থিম</span></button><button type="button" data-tab="preview"><b>৩</b><span>প্রিভিউ</span></button></nav>
+<div id="sheetHost"></div>
 <div id="tip" class="tip"></div>
 <dialog id="big"><button id="bigclose" type="button" class="ghost">বন্ধ করুন</button><div id="bigOut"></div></dialog>
 <script src="js/data.js"></script>

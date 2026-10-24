@@ -15,7 +15,8 @@ const selected=new Set(),THEME_TXT={map:'মানচিত্র মাঝখ�
 const complete=it=>!!it.d,selOne=()=>selected.size===1?items.find(i=>i.id===[...selected][0]):null;
 const inScope=it=>!scope||(!!it.d&&DDIV[it.d]===scope),album=()=>scope?items.filter(inScope):items;
 const per=()=>theme()==='map'?perMap:theme()==='grid'?10:5,pageCount=()=>Math.max(1,Math.ceil(album().length/per())),curItems=()=>album().slice(page*per(),page*per()+per());
-function flash(m){notice=m;draw();setTimeout(()=>{if(notice===m){notice='';draw()}},6000)}
+const MOBILE=matchMedia('(max-width: 760px)');let needReveal=false,noticeBad=true;
+function flash(m,bad=true){notice=m;noticeBad=bad;draw();setTimeout(()=>{if(notice===m){notice='';draw()}},6000)}
 const proj=p=>[(p.lng-88)*91.64*MAP.sx+MAP.tx,(26.7-p.lat)*100*MAP.sy+MAP.ty];
 
 /* ---------- district geometry: keep every photo's point inside its own district ---------- */
@@ -169,7 +170,7 @@ function refreshTile(it){
   $('#todoN').textContent=bn(items.filter(i=>!complete(i)).length);
 }
 const updateOut=()=>items.forEach(it=>it.el&&it.el.classList.toggle('out',!inScope(it)));
-function stats(){$('#count').textContent=`${bn(items.length)} / ${bn(MAXP)}`;$('#todoN').textContent=bn(items.filter(i=>!complete(i)).length);$('#lib').hidden=!items.length}
+function stats(){$('#count').textContent=`${bn(items.length)} / ${bn(MAXP)}`;$('#todoN').textContent=bn(items.filter(i=>!complete(i)).length);$('#lib').hidden=!items.length;const todo=items.filter(i=>!complete(i)).length;$('#mTodo').hidden=!todo;$('#mTodo').textContent=`জেলা বাছুন (${bn(todo)})`;$('#tabCount').textContent=items.length?`(${bn(items.length)})`:''}
 function applyFilter(){const s=$('#q').value.trim().toLowerCase();items.forEach(it=>{it.el.hidden=!((filter==='all'||!complete(it))&&(!s||(it.place+' '+it.d+' '+((DIST(it.d)||[])[3]||'')).toLowerCase().includes(s)))})}
 function renderLib(){$('#tiles').replaceChildren(...items.map(tileFor));applyFilter();stats();syncSelUI()}
 function prog(done,total){const p=$('#progress');p.hidden=!total;if(total){p.querySelector('i').style.width=done/total*100+'%';p.querySelector('span').textContent=`ছবি প্রস্তুত হচ্ছে… ${bn(done)} / ${bn(total)}`}}
@@ -186,6 +187,7 @@ async function addFiles(fs){
     await sleep(0);
   }
   prog(0,0);stats();applyFilter();draw();
+  if(MOBILE.matches&&items.length){setTab('preview');if(!fail)flash('ছবি যোগ হয়েছে — ছবিতে ট্যাপ করে জেলা ও নাম যোগ করুন।',false)}
   if(fail)flash(`${bn(fail)}টি ছবি খোলা যায়নি — JPG বা PNG ব্যবহার করুন।`);
 }
 function removeItems(ids){
@@ -233,11 +235,11 @@ function combo(root,onPick){
 const eDist=combo($('#eDistBox'),(v,kbd)=>{eachSel(it=>{it.d=v;refreshTile(it);want(it)});updateOut();draw();if(kbd&&selected.size===1)advance()});
 function advance(){
   const cur=selOne(),i=items.indexOf(cur),nx=items.slice(i+1).find(x=>!x.d)||items.find(x=>!x.d&&x!==cur);
-  if(!nx)return;selected.clear();selected.add(nx.id);anchor=nx.id;syncSelUI();goTo(nx);nx.el.scrollIntoView({block:'nearest',behavior:'smooth'});eDist.focus();
+  if(!nx)return;selected.clear();selected.add(nx.id);anchor=nx.id;needReveal=true;syncSelUI();goTo(nx);if(!MOBILE.matches)nx.el.scrollIntoView({block:'nearest',behavior:'smooth'});eDist.focus();
 }
 function goTo(it){const idx=album().indexOf(it);if(idx<0)return draw();const p=Math.floor(idx/per());if(p!==page){page=p;animNext=true}draw()}
 const pct=v=>bn(Math.round(+v))+'%';
-function syncVals(){[['gsize','gval'],['szoom','zval'],['ssize','sval'],['eSize','evalOut']].forEach(([a,b])=>{$('#'+b).textContent=pct($('#'+a).value)})}
+function syncVals(){[['gsize','gval'],['szoom','zval'],['ssize','sval'],['eSize','evalOut'],['eZoom','ezval']].forEach(([a,b])=>{$('#'+b).textContent=pct($('#'+a).value)})}
 document.addEventListener('input',e=>{if(e.target.type==='range')syncVals()});
 function syncSelUI(){
   items.forEach(it=>it.el&&it.el.classList.toggle('sel',selected.has(it.id)));
@@ -246,11 +248,13 @@ function syncSelUI(){
     $('#eTitle').textContent=n===1?`ছবি ${bn(items.indexOf(sl[0])+1)}`:`${bn(n)}টি ছবি নির্বাচিত`;
     const pl=new Set(sl.map(i=>i.place)),ds=new Set(sl.map(i=>i.d));
     $('#ePlace').value=pl.size===1?sl[0].place:'';$('#ePlace').placeholder=pl.size>1?'একাধিক জায়গা — লিখলে সবগুলো বদলাবে':'জায়গার নাম (ঐচ্ছিক)';
-    eDist.set(ds.size===1?sl[0].d:'',ds.size>1);$('#eSize').value=sl[0].size;
+    eDist.set(ds.size===1?sl[0].d:'',ds.size>1);$('#eSize').value=sl[0].size;$('#eZoom').value=Math.round(sl[0].zoom*100);
   }
   const one=selOne(),on=!!(one&&curItems().includes(one));
-  $('#selbar').hidden=!on;$('#hint').hidden=!!on;$('#hint').textContent=theme()==='map'?'ছবিতে ক্লিক করে বেছে নিন, তারপর টেনে সরান ও স্ক্রল করে জুম করুন। মানচিত্রে জেলার ওপর মাউস রাখলে নাম দেখা যাবে।':'ছবিতে ক্লিক করে বেছে নিন, তারপর টেনে সরান ও স্ক্রল করে জুম করুন।';
+  $('#selbar').hidden=!on;$('#hint').hidden=!!on;$('#hint').textContent=MOBILE.matches?'ছবিতে ট্যাপ করুন — জেলা ও নাম যোগ করুন। সরাতে টানুন, জুম করতে দুই আঙুলে চিমটি কাটুন।':theme()==='map'?'ছবিতে ক্লিক করে বেছে নিন, তারপর টেনে সরান ও স্ক্রল করে জুম করুন। মানচিত্রে জেলার ওপর মাউস রাখলে নাম দেখা যাবে।':'ছবিতে ক্লিক করে বেছে নিন, তারপর টেনে সরান ও স্ক্রল করে জুম করুন।';
   if(on){$('#selname').textContent=one.place.trim()||`ছবি ${bn(items.indexOf(one)+1)}`;$('#ssize').value=one.size;$('#szoom').value=Math.round(one.zoom*100)}
+  const sheet=MOBILE.matches&&n>0;document.body.classList.toggle('sheet-open',sheet);
+  if(sheet)requestAnimationFrame(()=>document.documentElement.style.setProperty('--sheetH',$('#editor').offsetHeight+'px'));
   syncVals();place();
 }
 $('#tiles').addEventListener('click',e=>{
@@ -429,12 +433,18 @@ function place(){
   if(!r){selEl.remove();return}
   if(selEl.parentNode!==par)par.append(selEl);
   Object.assign(selEl.style,{left:r.x*k+'px',top:r.y*k+'px',width:r.w*k+'px',height:r.h*k+'px',borderRadius:r.rad==='c'?'50%':r.rad*k+'px'});
+  if(needReveal&&MOBILE.matches&&selEl.offsetWidth){needReveal=false;setTimeout(keepVisible,90)}
+}
+function keepVisible(){ // keep the tapped photo visible above the details sheet
+  if(!selEl.isConnected||!selEl.offsetWidth)return;
+  const r=selEl.getBoundingClientRect(),top=78,bot=innerHeight-$('#editor').offsetHeight-10;
+  if(r.top<top||r.bottom>bot)scrollBy({top:(r.top+r.bottom)/2-(top+bot)/2,behavior:'smooth'});
 }
 function pick(e){
   const c=e.currentTarget,b=c.getBoundingClientRect(),x=(e.clientX-b.left)/b.width*c.width,y=(e.clientY-b.top)/b.height*c.height;
   const hit=c._rects.find(r=>x>=r.x&&x<=r.x+r.w&&y>=r.y&&y<=r.y+r.h);
-  selected.clear();if(hit)selected.add(hit.id);syncSelUI();
-  const it=selOne();if(it&&it.el)it.el.scrollIntoView({block:'nearest',behavior:'smooth'});
+  selected.clear();if(hit)selected.add(hit.id);needReveal=!!hit;syncSelUI();
+  const it=selOne();if(it&&it.el&&!MOBILE.matches)it.el.scrollIntoView({block:'nearest',behavior:'smooth'});
 }
 selEl.querySelector('.hd').addEventListener('pointerdown',e=>{
   e.preventDefault();const it=selOne(),c=mapCanvas(),r=c._rects.find(r=>r.id===it.id),sw=r.w*c.clientWidth/c.width,x0=e.clientX,s0=it.size;
@@ -443,13 +453,29 @@ selEl.querySelector('.hd').addEventListener('pointerdown',e=>{
   addEventListener('pointermove',mv);addEventListener('pointerup',up);addEventListener('pointercancel',up);
 });
 const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
+const ptrs=new Map();let gest=null;
 selEl.addEventListener('pointerdown',e=>{
-  if(e.target.closest('.hd')||e.button>0)return;
-  const it=selOne(),c=mapCanvas(),r=it&&c&&c._rects&&c._rects.find(r=>r.id===it.id);if(!r)return;
-  e.preventDefault();const k=c.clientWidth/c.width,sx=r.iw-r.w,sy=r.ih-r.h,x0=e.clientX,y0=e.clientY,fx0=it.fx,fy0=it.fy;
-  selEl.classList.add('drag');
-  const mv=ev=>{if(sx>1)it.fx=clamp(fx0-(ev.clientX-x0)/k/sx,0,1);if(sy>1)it.fy=clamp(fy0-(ev.clientY-y0)/k/sy,0,1);draw()};
-  const up=()=>{selEl.classList.remove('drag');removeEventListener('pointermove',mv);removeEventListener('pointerup',up);removeEventListener('pointercancel',up)};
+  if(e.target.closest('.hd')||(e.pointerType==='mouse'&&e.button>0))return;
+  const it=selOne(),c0=mapCanvas(),r0=it&&c0&&c0._rects&&c0._rects.find(r=>r.id===it.id);if(!r0)return;
+  e.preventDefault();ptrs.set(e.pointerId,[e.clientX,e.clientY]);
+  const dist=()=>{const[a,b]=[...ptrs.values()];return Math.hypot(a[0]-b[0],a[1]-b[1])||1};
+  const start=()=>{
+    if(ptrs.size>=2){gest={mode:'pinch',d0:dist(),z0:it.zoom};return}
+    const cc=mapCanvas(),rr=cc._rects.find(x=>x.id===it.id)||r0,[p]=[...ptrs.values()];
+    gest={mode:'pan',x0:p[0],y0:p[1],fx0:it.fx,fy0:it.fy,sx:rr.iw-rr.w,sy:rr.ih-rr.h,k:cc.clientWidth/cc.width};
+  };
+  start();selEl.classList.add('drag');
+  if(ptrs.size>1)return; // move/up listeners were attached by the first finger
+  const mv=ev=>{
+    if(!ptrs.has(ev.pointerId)||!gest)return;ptrs.set(ev.pointerId,[ev.clientX,ev.clientY]);
+    if(gest.mode==='pinch')it.zoom=clamp(gest.z0*dist()/gest.d0,1,4);
+    else{const[p]=[...ptrs.values()];if(gest.sx>1)it.fx=clamp(gest.fx0-(p[0]-gest.x0)/gest.k/gest.sx,0,1);if(gest.sy>1)it.fy=clamp(gest.fy0-(p[1]-gest.y0)/gest.k/gest.sy,0,1)}
+    draw();
+  };
+  const up=ev=>{
+    ptrs.delete(ev.pointerId);if(ptrs.size){start();return}
+    selEl.classList.remove('drag');removeEventListener('pointermove',mv);removeEventListener('pointerup',up);removeEventListener('pointercancel',up);
+  };
   addEventListener('pointermove',mv);addEventListener('pointerup',up);addEventListener('pointercancel',up);
 });
 selEl.addEventListener('wheel',e=>{e.preventDefault();const it=selOne();if(!it)return;it.zoom=clamp(it.zoom*Math.exp(-e.deltaY*.0015),1,4);$('#szoom').value=Math.round(it.zoom*100);draw()},{passive:false});
@@ -472,19 +498,21 @@ async function render(){
   $('#pager').hidden=n<2;$('#pageInfo').textContent=`পাতা ${bn(page+1)} / ${bn(n)}`;$('#prev').disabled=page<=0;$('#next').disabled=page>=n-1;
   if(!A.length&&th!=='map'){const p=document.createElement('p');p.className='empty';p.textContent=scope&&items.length?'এই বিভাগের কোনো ছবি নেই — ছবির জেলা বাছুন।':'ছবি যোগ করলেই এখানে অ্যালবামের লাইভ প্রিভিউ দেখা যাবে।';out.replaceChildren(p);say('');syncSelUI();return}
   const c=await buildPage(th,page,titleText());if(my!==tok)return;
-  const w=document.createElement('div'),box=document.createElement('div');
-  w.className='pg'+(animNext?' enter':'');box.className='pgbox';
+  let w=out.querySelector(':scope > .pg'),box=w&&w.querySelector('.pgbox');
+  if(!w){w=document.createElement('div');w.className='pg';box=document.createElement('div');box.className='pgbox';w.append(box);out.replaceChildren(w)}
   c.className='pick';c.onclick=pick;
-  box.append(c);w.append(box);
+  const old=box.querySelector('canvas');old?old.replaceWith(c):box.prepend(c);
+  if(animNext){w.classList.remove('enter');void w.offsetWidth;w.classList.add('enter')}
+  w.querySelectorAll(':scope > .dls').forEach(x=>x.remove());
   if(A.length){
     const row=document.createElement('div');row.className='dls';
     const b=document.createElement('button');b.type='button';b.className='cta';b.textContent=n>1?'এই পাতা ডাউনলোড':'ডাউনলোড করুন';b.onclick=()=>downloadPage(c,th);row.append(b);
     if(n>1){const z=document.createElement('button');z.type='button';z.className='ghost';z.textContent=`সব ${bn(n)}টি পাতা (ZIP)`;z.onclick=()=>downloadAll(z);row.append(z)}
     w.append(row);
   }
-  animNext=false;out.replaceChildren(w);
+  animNext=false;
   const miss=th==='map'?A.filter(it=>memo[keyOf(it)]&&!memo[keyOf(it)].found).length:0,pend=q.length+busy;
-  if(notice)say(notice,1);
+  if(notice)say(notice,noticeBad);
   else if(th==='map'&&pend)say(`জায়গা খোঁজা হচ্ছে… (বাকি ${bn(pend)}টি)`);
   else if(miss)say(`${bn(miss)}টি জায়গা খুঁজে পাওয়া যায়নি — জেলার ঠিক মাঝখানে বসানো হয়েছে।`);
   else say('');
@@ -533,7 +561,7 @@ $('#savePix').onclick=async()=>{
   }
   files.unshift({name:'project.json',data:new TextEncoder().encode(JSON.stringify(meta))});
   saveBlob(zip(files),`gontobbohin-${new Date().toISOString().slice(0,10)}.pix`);
-  savedSnap=snap();btn.disabled=false;flash(`${bn(items.length)}টি ছবিসহ প্রজেক্ট সেভ হয়েছে।`);
+  savedSnap=snap();btn.disabled=false;flash(`${bn(items.length)}টি ছবিসহ প্রজেক্ট সেভ হয়েছে।`,false);
 };
 $('#openPix').onclick=()=>$('#pixIn').click();
 $('#pixIn').onchange=async e=>{
@@ -554,7 +582,44 @@ $('#pixIn').onchange=async e=>{
     const sr=document.querySelector(`[name=shape][value=${SHAPES[meta.shape]?meta.shape:'rect'}]`);sr.checked=true;shape=sr.value;pal=PALS[meta.palette]?meta.palette:'classic';document.querySelector(`[name=pal][value=${pal}]`).checked=true;
     const r=document.querySelector(`[name=theme][value=${meta.theme}]`)||document.querySelector('[name=theme][value=map]');r.checked=true;document.body.dataset.theme=theme();setDesc();
     Object.assign(cache,meta.geo||{});try{localStorage.setItem('geo',JSON.stringify(cache))}catch{}
-    animNext=true;renderLib();items.forEach(want);draw();savedSnap=snap();flash(`${bn(items.length)}টি ছবিসহ প্রজেক্ট খোলা হয়েছে।`);
+    animNext=true;renderLib();items.forEach(want);draw();if(MOBILE.matches)setTab('preview');savedSnap=snap();flash(`${bn(items.length)}টি ছবিসহ প্রজেক্ট খোলা হয়েছে।`,false);
   }catch{prog(0,0);flash('ফাইলটি সঠিক .pix নয় বা নষ্ট হয়ে গেছে।')}
 };
+/* ---------- phone workspace: tabs + details sheet ---------- */
+const sheetHost=$('#sheetHost');
+function setTab(t,scroll=true){
+  document.body.dataset.tab=t;
+  document.querySelectorAll('#mtabs button').forEach(b=>{const on=b.dataset.tab===t;b.classList.toggle('on',on);b.setAttribute('aria-selected',on)});
+  if(MOBILE.matches){requestAnimationFrame(()=>{draw();place()});if(scroll)$('#builder .work').scrollIntoView({behavior:'smooth',block:'start'})}
+}
+document.querySelectorAll('#mtabs button').forEach(b=>b.onclick=()=>setTab(b.dataset.tab));
+$('#toPreview').onclick=$('#toPreview2').onclick=()=>setTab('preview');
+document.querySelector('.bar a[href="#preview"]').addEventListener('click',e=>{if(MOBILE.matches){e.preventDefault();setTab('preview')}});
+new IntersectionObserver(es=>document.body.classList.toggle('in-studio',es[0].isIntersecting)).observe($('#builder'));
+function placeEditor(){ // on phones the editor becomes a bottom sheet; on desktop it sits in the library as before
+  const ed=$('#editor');
+  if(MOBILE.matches){if(ed.parentNode!==sheetHost)sheetHost.append(ed)}
+  else{if(ed.parentNode===sheetHost)$('#tiles').before(ed);document.body.classList.remove('sheet-open')}
+  syncSelUI();
+}
+MOBILE.addEventListener('change',placeEditor);
+function stepPhoto(d){
+  const A=album();if(!A.length)return;const i=A.indexOf(selOne()||A[0]),nx=A[(i+d+A.length)%A.length];
+  selected.clear();selected.add(nx.id);anchor=nx.id;needReveal=true;syncSelUI();goTo(nx);
+}
+$('#ePrev').onclick=()=>stepPhoto(-1);$('#eNext').onclick=()=>stepPhoto(1);
+$('#eDone').onclick=()=>{selected.clear();syncSelUI()};
+$('#eZoom').oninput=e=>{eachSel(it=>{it.zoom=e.target.value/100});draw()};
+$('#eReset').onclick=()=>{eachSel(it=>{it.zoom=1;it.fx=.5;it.fy=.3});draw();syncSelUI()};
+$('#mAdd').onclick=()=>$('#files').click();
+$('#mTodo').onclick=()=>{ // guided: jump to the first photo that still needs a district
+  const nx=items.find(i=>!i.d);if(!nx)return;
+  selected.clear();selected.add(nx.id);anchor=nx.id;needReveal=true;syncSelUI();goTo(nx);setTimeout(()=>eDist.focus(),450);
+};
+if(window.visualViewport){ // lift the sheet above the on-screen keyboard
+  const vv=visualViewport,f=()=>document.documentElement.style.setProperty('--kb',Math.max(0,innerHeight-vv.height-vv.offsetTop)+'px');
+  vv.addEventListener('resize',f);vv.addEventListener('scroll',f);
+}
+placeEditor();setTab('photos',false);
 syncSelUI();draw();
+
