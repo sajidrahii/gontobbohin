@@ -1,4 +1,4 @@
-# গন্তব্যহীন — static site (v1.0.3)
+# গন্তব্যহীন — static site (v1.0.4)
 Pure HTML/CSS/JS, no build step, no server. Deploy the `public/` folder.
 
 - **Run locally:** open `public/index.html`, or run `python -m http.server` inside `public/`.
@@ -21,5 +21,5 @@ Rename it to `.zip` to inspect it. Importing replaces the current project. `vers
 
 `version` 3 files also store each photo's zoom and position inside its shape (plus card shape, division scope and title flag); version 1 and 2 files still open.
 
-## Phone layout (v1.0.3)
+## Phone layout (v1.0.4)
 On screens up to 760 px wide the studio becomes a three-tab workspace (১ ছবি · ২ থিম · ৩ প্রিভিউ). After photos are added the app jumps to the live preview; tapping a photo opens a bottom sheet for its district, place name, zoom and size. One finger repositions the photo inside its shape, two fingers pinch to zoom. Desktop and tablet layouts are unchanged.

@@ -73,8 +73,8 @@
             <input id="ePlace" placeholder="জায়গার নাম (ঐচ্ছিক)" aria-label="জায়গার নাম (ঐচ্ছিক)">
           </div>
           <p class="hintline">জেলা লিখে <kbd>Enter</kbd> চাপলে পরের ছবিতে চলে যাবে। বাংলা বা ইংরেজি — দুভাবেই খোঁজা যায়।</p>
-          <label class="ezoom mob-only">জুম <output id="ezval" class="val"></output> <input id="eZoom" type="range" min="100" max="400" aria-label="ছবির জুম"></label>
-          <label class="esize sz">আকার <output id="evalOut" class="val"></output> <input id="eSize" type="range" min="50" max="200" aria-label="কার্ডের আকার"></label>
+          <label class="ezoom mob-only">জুম <output id="ezval" class="val"></output> <input id="eZoom" class="sn-zoom" type="range" min="100" max="400" aria-label="ছবির জুম"></label>
+          <label class="esize sz">আকার <output id="evalOut" class="val"></output> <input id="eSize" class="sn-size" type="range" min="50" max="200" aria-label="কার্ডের আকার"></label>
           <div class="ebtns"><button id="eReset" type="button" class="ghost sm mob-only"><svg class="ico" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path d="M4.5 12a7.5 7.5 0 1 0 2.6-5.7M4.5 4.5v4.8h4.8" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg> ছবি রিসেট</button><button id="eDel" type="button" class="danger sm">মুছে ফেলুন</button></div>
         </div>
         <div id="tiles" class="tiles" aria-label="ছবির তালিকা"></div>
@@ -92,14 +92,14 @@
       <p id="themeDesc" class="muted fade in"></p>
       <label class="field">অ্যালবামের পরিধি <select id="scope"><option value="">সারা বাংলাদেশ</option></select></label>
       <p id="scopeNote" class="note"></p>
-      <label class="field">শিরোনাম <input id="title" value="বাংলাদেশের আনাচে-কানাচে"></label>
+      <label class="field">শিরোনাম <input id="title" value="বাংলাদেশের আনাচে-কানাচে আমি"></label>
       <div class="field sz"><span>কার্ডের আকৃতি</span>
         <div class="shapes" role="radiogroup" aria-label="কার্ডের আকৃতি">
           <label><input type="radio" name="shape" value="rect" checked><svg viewBox="0 0 40 40"><rect x="9" y="3" width="22" height="34" rx="6"/></svg><span>আয়তক্ষেত্র</span></label>
           <label><input type="radio" name="shape" value="circle"><svg viewBox="0 0 40 40"><circle cx="20" cy="20" r="16"/></svg><span>বৃত্ত</span></label>
         </div></div>
       <label class="field sz">প্রতি পাতায় ছবি <select id="perMap"><option>8</option><option>12</option><option selected>16</option><option>20</option><option>24</option></select></label>
-      <div class="field sz"><label for="gsize" class="lab">সব ছবির আকার <output id="gval" class="val" for="gsize">১০০%</output></label><input id="gsize" type="range" min="50" max="200" value="100"></div>
+      <div class="field sz"><label for="gsize" class="lab">সব ছবির আকার <output id="gval" class="val" for="gsize">১০০%</output></label><input id="gsize" class="sn-size" type="range" min="50" max="200" value="100"></div>
     <button id="toPreview2" type="button" class="cta mob-only">প্রিভিউ দেখুন →</button>
       </div>
     </div>
@@ -110,8 +110,8 @@
       <div class="pal" id="palBox" role="radiogroup" aria-label="রঙের থিম"></div>
       <p id="hint" class="note" hidden>মানচিত্রে জেলার ওপর মাউস রাখলে নাম দেখা যাবে। ছবিতে ক্লিক করে কোণার বিন্দু টেনে আকার বদলান।</p>
       <div id="selbar" class="selbar" hidden><b id="selname"></b>
-        <label class="mini">জুম <output id="zval" class="val"></output> <input id="szoom" type="range" min="100" max="400" aria-label="ছবির জুম"></label>
-        <label class="mini sz">কার্ড <output id="sval" class="val"></output> <input id="ssize" type="range" min="50" max="200" aria-label="কার্ডের আকার"></label>
+        <label class="mini">জুম <output id="zval" class="val"></output> <input id="szoom" class="sn-zoom" type="range" min="100" max="400" aria-label="ছবির জুম"></label>
+        <label class="mini sz">কার্ড <output id="sval" class="val"></output> <input id="ssize" class="sn-size" type="range" min="50" max="200" aria-label="কার্ডের আকার"></label>
         <button id="sreset" type="button" class="ghost sm"><svg class="ico" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path d="M4.5 12a7.5 7.5 0 1 0 2.6-5.7M4.5 4.5v4.8h4.8" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg> রিসেট</button>
         <button id="desel" type="button" class="ghost sm"><span aria-hidden="true">✕</span> বাতিল</button></div>
       <div id="pager" class="pager" hidden><button id="prev" type="button" class="ghost" aria-label="আগের পাতা">‹</button><span id="pageInfo"></span><button id="next" type="button" class="ghost" aria-label="পরের পাতা">›</button></div>
@@ -121,7 +121,7 @@
   </div>
 </section>
 </main>
-<footer class="foot">গন্তব্যহীন v1.0.3 · Vibe Coded by সাজিদ আহমেদ রাহী · Dept. of IoT & Robotics Engineering, UFTB</footer>
+<footer class="foot">গন্তব্যহীন v1.0.0 · Vibe Coded by সাজিদ আহমেদ রাহী · Dept. of IoT & Robotics Engineering, UFTB</footer>
 <nav class="mtabs" id="mtabs" aria-label="ধাপ"><button type="button" data-tab="photos" class="on"><b>১</b><span>ছবি <em id="tabCount"></em></span></button><button type="button" data-tab="settings"><b>২</b><span>থিম</span></button><button type="button" data-tab="preview"><b>৩</b><span>প্রিভিউ</span></button></nav>
 <div id="sheetHost"></div>
 <div id="tip" class="tip"></div>

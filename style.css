@@ -353,3 +353,19 @@ main{grid-template-columns:minmax(0,1fr)}
 }
 
 .ico{vertical-align:-3px;margin-right:6px}
+
+/* ---- v1.0.4: slider marks (50 / 100 / 150) + phone district picker ---- */
+input[type=range]{--th:22px;--tk:rgba(20,56,43,.32)}
+.sn-size{background-image:linear-gradient(var(--tk),var(--tk)),linear-gradient(var(--tk),var(--tk));background-repeat:no-repeat;background-size:2px 100%,2px 100%;background-position:calc(var(--th)/2 + (100% - var(--th))*.3333) 0,calc(var(--th)/2 + (100% - var(--th))*.6667) 0}
+.sn-zoom{background-image:linear-gradient(var(--tk),var(--tk));background-repeat:no-repeat;background-size:2px 100%;background-position:calc(var(--th)/2 + (100% - var(--th))*.1667) 0}
+@media(max-width:760px){
+  input[type=range]{--th:30px}
+  /* suggestions open DOWN, inside the sheet, and scroll */
+  #sheetHost .clist{position:static;left:auto;right:auto;top:auto;bottom:auto;margin-top:8px;min-height:140px;max-height:calc(var(--vvh,640px) - 230px);overflow-y:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;animation:none;box-shadow:none}
+  #sheetHost .editor.picking{max-height:calc(var(--vvh,100vh) - 12px)}
+  #sheetHost .editor.picking #ePlace,#sheetHost .editor.picking .ezoom,#sheetHost .editor.picking .esize,#sheetHost .editor.picking .ebtns{display:none}
+}
+/* marks need higher specificity than the base range-input rule */
+input.sn-size[type=range]{background-image:linear-gradient(var(--tk),var(--tk)),linear-gradient(var(--tk),var(--tk));background-repeat:no-repeat;background-size:2px 100%,2px 100%;background-position:calc(var(--th)/2 + (100% - var(--th))*.3333) 0,calc(var(--th)/2 + (100% - var(--th))*.6667) 0}
+input.sn-zoom[type=range]{background-image:linear-gradient(var(--tk),var(--tk));background-repeat:no-repeat;background-size:2px 100%;background-position:calc(var(--th)/2 + (100% - var(--th))*.1667) 0}
+@media(max-width:760px){#sheetHost .cbtn{top:7px;transform:none}}

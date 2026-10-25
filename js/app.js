@@ -202,20 +202,20 @@ drop.addEventListener('drop',e=>addFiles([...e.dataTransfer.files]));
 
 /* ---------- district combobox: type to search (Bangla or English) or open the list ---------- */
 function combo(root,onPick){
-  const inp=root.querySelector('input'),ul=root.querySelector('ul'),btn=root.querySelector('.cbtn');
+  const inp=root.querySelector('input'),ul=root.querySelector('ul'),btn=root.querySelector('.cbtn'),ed=root.closest('.editor');
   const nq=s=>s.normalize('NFC').toLowerCase().replace(/[\s\-']/g,''),ALL=DISTRICTS.map(d=>({v:d[0],en:d[3],dv:d[4],k:[nq(d[0]),nq(d[3]),nq(d[4])]}));
-  let val='',mixed=false,hi=0,list=[];
+  let val='',mixed=false,hi=0,list=[],bt;
   const rank=(o,q)=>o.k[0].startsWith(q)||o.k[1].startsWith(q)?0:o.k[0].includes(q)||o.k[1].includes(q)?1:o.k[2].includes(q)?2:9;
   const filt=q=>{q=nq(q);return q?ALL.map(o=>[rank(o,q),o]).filter(a=>a[0]<9).sort((a,b)=>a[0]-b[0]).map(a=>a[1]):ALL.slice()};
   function mark(){[...ul.children].forEach((li,i)=>li.classList.toggle('hi',i===hi));const li=ul.children[hi];if(li&&li.scrollIntoView)li.scrollIntoView({block:'nearest'})}
   function show(q){
     list=filt(q);if(!q.trim()&&(val||mixed))list.push({v:'',clear:1});hi=0;
     ul.innerHTML=list.length?list.map((o,i)=>o.clear?`<li role="option" data-i="${i}" class="clr">✕ জেলা মুছে দিন</li>`:`<li role="option" data-i="${i}"${o.v===val?' aria-selected="true"':''}><b>${o.v}</b><span>${o.en} · ${o.dv}</span></li>`).join(''):'<li class="none">কোনো জেলা মেলেনি</li>';
-    mark();ul.hidden=false;inp.setAttribute('aria-expanded','true');
+    mark();ul.hidden=false;inp.setAttribute('aria-expanded','true');if(ed&&MOBILE.matches)ed.classList.add('picking');
   }
-  const close=()=>{ul.hidden=true;inp.setAttribute('aria-expanded','false')};
-  function pick(i,kbd){const o=list[i];if(!o)return;val=o.v;mixed=false;inp.value=o.v;close();onPick(o.v,kbd)}
-  inp.addEventListener('focus',()=>{inp.select();show('')});
+  const close=()=>{ul.hidden=true;inp.setAttribute('aria-expanded','false');if(ed)ed.classList.remove('picking')};
+  function pick(i,kbd){const o=list[i];if(!o)return;val=o.v;mixed=false;inp.value=o.v;close();onPick(o.v,kbd);if(!kbd&&MOBILE.matches)inp.blur()}
+  inp.addEventListener('focus',()=>{clearTimeout(bt);inp.select();show('')});
   inp.addEventListener('input',()=>show(inp.value));
   inp.addEventListener('keydown',e=>{
     if(e.key==='ArrowDown'||e.key==='ArrowUp'){e.preventDefault();if(ul.hidden)show('');else if(list.length){hi=(hi+(e.key==='ArrowDown'?1:-1)+list.length)%list.length;mark()}}
@@ -223,7 +223,7 @@ function combo(root,onPick){
     else if(e.key==='Escape'){close();inp.value=val}
     else if(e.key==='Tab'&&!ul.hidden&&inp.value.trim()&&inp.value!==val&&list[hi]&&!list[hi].clear)pick(hi,false);
   });
-  inp.addEventListener('blur',()=>{close();inp.value=val});
+  inp.addEventListener('blur',()=>{inp.value=val;clearTimeout(bt);bt=setTimeout(close,220)}); // wait a moment so a tap on a neighbouring button is not lost when the sheet re-lays out
   ul.addEventListener('mousedown',e=>e.preventDefault());
   ul.addEventListener('click',e=>{const li=e.target.closest('li[data-i]');if(li)pick(+li.dataset.i,false)});
   btn.addEventListener('mousedown',e=>e.preventDefault());
@@ -232,7 +232,7 @@ function combo(root,onPick){
 }
 
 /* ---------- selection + bulk editor ---------- */
-const eDist=combo($('#eDistBox'),(v,kbd)=>{eachSel(it=>{it.d=v;refreshTile(it);want(it)});updateOut();draw();if(kbd&&selected.size===1)advance()});
+const eDist=combo($('#eDistBox'),(v,kbd)=>{eachSel(it=>{it.d=v;refreshTile(it);want(it)});updateOut();if(MOBILE.matches&&selected.size===1)needReveal=true;draw();if(kbd&&selected.size===1)advance()});
 function advance(){
   const cur=selOne(),i=items.indexOf(cur),nx=items.slice(i+1).find(x=>!x.d)||items.find(x=>!x.d&&x!==cur);
   if(!nx)return;selected.clear();selected.add(nx.id);anchor=nx.id;needReveal=true;syncSelUI();goTo(nx);if(!MOBILE.matches)nx.el.scrollIntoView({block:'nearest',behavior:'smooth'});eDist.focus();
@@ -241,6 +241,17 @@ function goTo(it){const idx=album().indexOf(it);if(idx<0)return draw();const p=M
 const pct=v=>bn(Math.round(+v))+'%';
 function syncVals(){[['gsize','gval'],['szoom','zval'],['ssize','sval'],['eSize','evalOut'],['eZoom','ezval']].forEach(([a,b])=>{$('#'+b).textContent=pct($('#'+a).value)})}
 document.addEventListener('input',e=>{if(e.target.type==='range')syncVals()});
+const SNAP={size:[50,100,150],zoom:[100,150]};
+// "dragging" starts on touch/mouse press and ends on release or the first key press (so arrow keys and screen readers keep fine control)
+['pointerdown','touchstart'].forEach(t=>document.addEventListener(t,e=>{if(e.target.type==='range')e.target._drag=true},true));
+['pointerup','touchend','mouseup'].forEach(t=>addEventListener(t,()=>document.querySelectorAll('input[type=range]').forEach(r=>{r._drag=false}),true));
+document.addEventListener('keydown',e=>{if(e.target.type==='range')e.target._drag=false},true);
+document.addEventListener('input',e=>{ // magnet: while dragging, values near a mark jump onto it (keyboard keeps fine control)
+  const t=e.target;if(t.type!=='range'||!t._drag)return;
+  const z=t.classList.contains('sn-zoom'),pts=z?SNAP.zoom:t.classList.contains('sn-size')?SNAP.size:null;if(!pts)return;
+  const v=+t.value,hit=pts.find(q=>Math.abs(q-v)<=(z?9:5));
+  if(hit!=null){if(hit!==v)t.value=hit;if(t._snap!==hit&&navigator.vibrate)navigator.vibrate(6);t._snap=hit}else t._snap=null;
+},true);
 function syncSelUI(){
   items.forEach(it=>it.el&&it.el.classList.toggle('sel',selected.has(it.id)));
   const n=selected.size,sl=items.filter(i=>selected.has(i.id));$('#editor').hidden=!n;
@@ -328,7 +339,24 @@ async function locate(k,pl,dn){
 
 /* ---------- drawing ---------- */
 const mk=(w,h,bg='#fff')=>{const c=document.createElement('canvas');c.width=w;c.height=h;const x=c.getContext('2d');x.fillStyle=bg;x.fillRect(0,0,w,h);x.fillStyle='#000';x.textAlign='center';return[c,x]};
-function fit(x,t,cx,y,maxW,size,min,col='#000'){x.fillStyle=col;x.font=`800 ${size}px ${FONT}`;while(x.measureText(t).width>maxW&&size>min){size-=2;x.font=`800 ${size}px ${FONT}`}x.fillText(t,cx,y)}
+function fit(x,t,cx,y,maxW,size,min,col='#000',al='center'){x.textAlign=al;x.fillStyle=col;x.font=`800 ${size}px ${FONT}`;while(x.measureText(t).width>maxW&&size>min){size-=2;x.font=`800 ${size}px ${FONT}`}x.fillText(t,cx,y);x.textAlign='center'}
+function albumStats(A){ // districts visited and distinct named places across the WHOLE album (all pages)
+  const total=scope?DDIVI.filter(d=>d===scope).length:MAP.districts.length;
+  const ds=new Set(A.map(i=>i.d).filter(Boolean)),pl=new Set(A.filter(i=>i.place.trim()).map(i=>i.place.trim().normalize('NFC').toLowerCase()+'|'+i.d));
+  return{visited:ds.size,total,places:pl.size};
+}
+function statLine(x,label,num,suf,px,y){
+  x.textAlign='left';x.fillStyle=PAL().title;
+  x.font=`700 46px ${FONT}`;x.fillText(label+' ',px,y);let w=px+x.measureText(label+' ').width;
+  x.font=`800 72px ${FONT}`;x.fillText(num,w,y+3);w+=x.measureText(num).width;
+  x.font=`700 46px ${FONT}`;x.fillText(suf,w,y);x.textAlign='center';
+}
+function brand(x,W,cy){
+  const P=PAL(),t='গন্তব্যহীন';x.font=`800 104px ${FONT}`;const w=x.measureText(t).width,px=W/2-w/2;
+  x.save();x.globalAlpha=.55;x.fillStyle=P.pillBg;x.beginPath();x.roundRect(px-46,cy-84,w+92,152,30);x.fill();x.restore();
+  const g=x.createLinearGradient(px,0,px+w,0);g.addColorStop(0,P.line);g.addColorStop(1,P.visited);
+  x.fillStyle=g;x.textAlign='center';x.fillText(t,W/2,cy+34);
+}
 function foot(x,W,H,p,n,col){if(n<2)return;x.fillStyle=col;x.font=`700 32px ${FONT}`;x.textAlign='center';x.fillText(`পাতা ${bn(p+1)} / ${bn(n)}`,W/2,H-18)}
 function shapePath(sh,px,py,w,h){
   const p=new Path2D();
@@ -345,7 +373,7 @@ function card(x,img,px,py,w,h,fancy,sh='rect',cr={}){ // cr = {z: zoom, fx/fy: w
 }
 function pill(x,t,cx,cy,maxW,size){ // place name as a small label on the card
   let w;do{x.font=`800 ${size}px ${FONT}`;w=x.measureText(t).width+22;size--}while(w>maxW&&size>10);
-  const h=size*1.8+6;x.fillStyle=PAL().pillBg;x.beginPath();x.roundRect(cx-w/2,cy-h/2,w,h,h/2);x.fill();
+  const h=size*1.8+6;x.save();x.shadowColor='rgba(0,0,0,.22)';x.shadowBlur=9;x.shadowOffsetY=2;x.fillStyle=PAL().pillBg;x.beginPath();x.roundRect(cx-w/2,cy-h/2,w,h,h/2);x.fill();x.restore();
   x.fillStyle=PAL().pillInk;x.textAlign='center';x.textBaseline='middle';x.fillText(t,cx,cy+1);x.textBaseline='alphabetic';
 }
 const chunk=(a,n)=>Array.from({length:Math.ceil(a.length/n)},(_,i)=>a.slice(i*n,i*n+n));
@@ -363,13 +391,15 @@ function drawSlides(list,p,pages){
 }
 function crossing(a,b,c,d){const o=(p,q,r)=>(q[0]-p[0])*(r[1]-p[1])-(q[1]-p[1])*(r[0]-p[0]);return o(a,b,c)*o(a,b,d)<0&&o(c,d,a)*o(c,d,b)<0}
 const ram=(a,b)=>Math.PI*(3*(a+b)-Math.sqrt((3*a+b)*(a+3*b))); // ellipse perimeter
-function drawMap(list,t,visited,pg,pages){
-  const W=1900,n=list.length,m=50,titleH=200,V=viewOf(scope),rho=Math.max(.8,Math.min(1.25,Math.sqrt(V.w/V.h))),circ=shape==='circle';
+function drawMap(list,t,visited,pg,pages,st){
+  const W=1900,n=list.length,m=50,titleH=210,V=viewOf(scope),rho=Math.max(.8,Math.min(1.25,Math.sqrt(V.w/V.h))),circ=shape==='circle';
   const Rx0=(W-2*m-240)/2,d=Math.min(circ?300:280,.9*ram(Rx0,Rx0/rho)/Math.max(n,3));
   list.forEach(o=>{const f=o.size*G;o.w=(circ?d:d*.78)*f;o.h=(circ?d:d*1.05)*f});
-  const ext=Math.max(200,...list.map(o=>Math.max(o.w,o.h))),Rx=(W-2*m-ext)/2,Ry=Rx/rho,cx=W/2,cy=titleH+ext/2+Ry,H=Math.round(titleH+ext+2*Ry+m+(pages>1?40:0)),[c,x]=mk(W,H,PAL().bg);
+  const ext=Math.max(200,...list.map(o=>Math.max(o.w,o.h))),Rx=(W-2*m-ext)/2,Ry=Rx/rho,cx=W/2,cy=titleH+ext/2+Ry,H=Math.round(titleH+ext+2*Ry+230),[c,x]=mk(W,H,PAL().bg);
   const ax=Rx-ext/2-26,ay=Ry-ext/2-26,s=Math.min(8,(scope?1:1.12)/Math.hypot(V.w/2/ax,V.h/2/ay)),ox=cx-(V.x0+V.w/2)*s,oy=cy-(V.y0+V.h/2)*s;
-  fit(x,t,W/2,125,W-200,100,30,PAL().title);
+  fit(x,t,44,128,W-90,112,36,PAL().title,'left');
+  statLine(x,'জেলাঃ',bn(st.visited),'/'+bn(st.total),48,208);
+  if(st.places)statLine(x,'স্থানঃ',bn(st.places),' টি',48,272);
   list.forEach(o=>{if(o.pt){o.mx=ox+o.pt.x*s;o.my=oy+o.pt.y*s}});
   // slots on the ring, clockwise from the top
   const N=Math.max(n,1),S=Array.from({length:N},(_,k)=>{const a=-Math.PI/2+2*Math.PI*k/N;return[cx+Rx*Math.cos(a),cy+Ry*Math.sin(a)]});
@@ -391,10 +421,12 @@ function drawMap(list,t,visited,pg,pages){
   ord.forEach((o,i)=>{
     const px=S[i][0]-o.w/2,py=S[i][1]-o.h/2,g=card(x,o.img,px,py,o.w,o.h,true,shape,o);
     c._rects.push({id:o.id,x:px,y:py,w:o.w,h:o.h,iw:g.iw,ih:g.ih,rad:circ?'c':o.w*.16});
-    if(o.place)pill(x,o.place,S[i][0],py+o.h-(circ?o.h*.2:o.h*.09),circ?o.w*.64:o.w*.92,Math.max(13,Math.min(26,o.w*.1)));
+    if(o.place)pill(x,o.place,S[i][0],py+o.h-(circ?o.h*.2:o.h*.09),circ?o.w*.82:o.w*.94,Math.max(15,Math.min(34,o.w*.14)));
   });
   ord.forEach(o=>{if(o.pt){x.beginPath();x.arc(o.mx,o.my,8,0,7);x.fillStyle=PAL().line;x.fill();x.strokeStyle=PAL().ring;x.lineWidth=2.5;x.stroke()}});
-  foot(x,W,H,pg,pages,PAL().foot);return c;
+  brand(x,W,H-115);
+  if(pages>1){x.font=`700 30px ${FONT}`;x.textAlign='right';x.fillStyle=PAL().foot;x.fillText(`পাতা ${bn(pg+1)} / ${bn(pages)}`,W-50,H-40);x.textAlign='center'}
+  return c;
 }
 function pointsFor(slice,list){ // every point is forced inside its district; photos sharing a spot are fanned out *inside* it
   const seen=[];
@@ -412,7 +444,7 @@ async function buildPage(th,p,t){
   const P=th==='map'?perMap:th==='grid'?10:5,A=album(),pages=Math.max(1,Math.ceil(A.length/P)),slice=A.slice(p*P,p*P+P);
   const imgs=await Promise.all(slice.map(bitmap));
   const list=slice.map((it,j)=>({id:it.id,place:it.place.trim(),img:imgs[j],size:it.size/100,z:it.zoom,fx:it.fx,fy:it.fy,pt:null}));
-  if(th==='map'){pointsFor(slice,list);return drawMap(list,t,new Set(A.map(i=>i.d).filter(Boolean)),p,pages)}
+  if(th==='map'){pointsFor(slice,list);return drawMap(list,t,new Set(A.map(i=>i.d).filter(Boolean)),p,pages,albumStats(A))}
   return th==='grid'?drawGrid(list,t,p,pages):drawSlides(list,p,pages);
 }
 
@@ -617,8 +649,8 @@ $('#mTodo').onclick=()=>{ // guided: jump to the first photo that still needs a 
   selected.clear();selected.add(nx.id);anchor=nx.id;needReveal=true;syncSelUI();goTo(nx);setTimeout(()=>eDist.focus(),450);
 };
 if(window.visualViewport){ // lift the sheet above the on-screen keyboard
-  const vv=visualViewport,f=()=>document.documentElement.style.setProperty('--kb',Math.max(0,innerHeight-vv.height-vv.offsetTop)+'px');
-  vv.addEventListener('resize',f);vv.addEventListener('scroll',f);
+  const vv=visualViewport,f=()=>{const r=document.documentElement.style;r.setProperty('--kb',Math.max(0,innerHeight-vv.height-vv.offsetTop)+'px');r.setProperty('--vvh',vv.height+'px')};
+  vv.addEventListener('resize',f);vv.addEventListener('scroll',f);f();
 }
 placeEditor();setTab('photos',false);
 syncSelUI();draw();
