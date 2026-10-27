@@ -369,3 +369,4 @@ input[type=range]{--th:22px;--tk:rgba(20,56,43,.32)}
 input.sn-size[type=range]{background-image:linear-gradient(var(--tk),var(--tk)),linear-gradient(var(--tk),var(--tk));background-repeat:no-repeat;background-size:2px 100%,2px 100%;background-position:calc(var(--th)/2 + (100% - var(--th))*.3333) 0,calc(var(--th)/2 + (100% - var(--th))*.6667) 0}
 input.sn-zoom[type=range]{background-image:linear-gradient(var(--tk),var(--tk));background-repeat:no-repeat;background-size:2px 100%;background-position:calc(var(--th)/2 + (100% - var(--th))*.1667) 0}
 @media(max-width:760px){#sheetHost .cbtn{top:7px;transform:none}}
+
