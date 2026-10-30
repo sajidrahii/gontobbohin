@@ -1,25 +1,107 @@
-# গন্তব্যহীন — static site (v1.0.4)
-Pure HTML/CSS/JS, no build step, no server. Deploy the `public/` folder.
+::: {align="center"}
+# 🧭 গন্তব্যহীন v1.0.0
 
-- **Run locally:** open `public/index.html`, or run `python -m http.server` inside `public/`.
-- **Netlify:** drag the `public` folder onto app.netlify.com/drop.
-- **GitHub Pages:** push the contents of `public/` to a repo → Settings → Pages.
+### আপনার ভ্রমণের স্মৃতিগুলো সাজান নিজের মতো করে
 
-Place lookup uses OpenStreetMap Nominatim (free, ~1 request/second, cached in the browser).
-The map is drawn from 64 district shapes (see gen.js).
-District boundaries © geoBoundaries (CC BY 4.0) via the `bd-geojson` npm package — keep this credit.
+**ছবি যোগ করুন · অ্যালবাম সাজান · পোস্টার তৈরি করুন · ডাউনলোড করুন**
 
-Rebuild map data (optional): `npm i && node gen.js` regenerates `public/js/data.js` (districts, English names, divisions, shapes).
+[🌐 ওয়েবসাইটে প্রবেশ করুন](#)
+`https://sajidrahii.github.io/gontobbohin/`{=html}
+:::
 
-## .pix project files
-A `.pix` file is a plain ZIP archive (stored, not compressed) with a custom extension:
+------------------------------------------------------------------------
+
+## ✨ গন্তব্যহীন কী?
+
+**গন্তব্যহীন** এমন একটি ওয়েব অ্যাপ, যেখানে আপনি বিভিন্ন জায়গায় ঘুরে তোলা
+ছবিগুলো দিয়ে নিজের পছন্দমতো একটি ভ্রমণ অ্যালবাম বা পোস্টার তৈরি করতে পারবেন।
+
+কোনো জটিল এডিটিং সফটওয়্যার নয়---কয়েকটি সহজ ধাপ অনুসরণ করেই সাজিয়ে নিতে
+পারবেন আপনার ভ্রমণের গল্প।
+
+## 🚀 কীভাবে তৈরি করবেন আপনার অ্যালবাম?
+
+অ্যালবাম তৈরির পুরো প্রক্রিয়াটি সাজানো হয়েছে **৩টি সহজ ধাপে**।
+
+### ১. ছবি যোগ করুন
+
+-   অ্যালবামে রাখতে চান এমন ছবিগুলো নির্বাচন করে যোগ করুন।
+-   বিভিন্ন জায়গার ছবি একসঙ্গে সাজান।
+-   ছবি যোগ করার সঙ্গে সঙ্গেই প্রিভিউ দেখতে পারবেন।
+
+### ২. অ্যালবাম সাজান
+
+আপনার পছন্দ অনুযায়ী অ্যালবামের সেটিংস ঠিক করুন:
+
+-   **অ্যালবামের পরিধি**
+-   **শিরোনাম**
+-   **কার্ডের আকৃতি**
+-   **প্রতি পাতায় ছবির সংখ্যা**
+
+প্রতিটি অপশন পরিবর্তন করে নিজের পছন্দমতো লেআউট তৈরি করুন।
+
+### ৩. ছবির বিস্তারিত সম্পাদনা করুন
+
+অ্যালবামের যেকোনো ছবিতে ক্লিক করে তার বিস্তারিত পরিবর্তন করতে পারবেন:
+
+-   জেলার নাম যোগ করুন।
+-   জায়গার নাম লিখুন।
+-   ছবির আকার পরিবর্তন করুন।
+-   প্রয়োজন অনুযায়ী ছবিটি রিসাইজ করুন।
+
+সবকিছু ঠিকঠাক হলে **ডাউনলোড** বাটনে ক্লিক করে আপনার তৈরি পোস্টারটি ডাউনলোড
+করে নিন।
+
+------------------------------------------------------------------------
+
+## 🔒 আপনার ছবি, আপনার কাছেই
+
+আপনার ব্যক্তিগত ছবির গোপনীয়তা আমাদের কাছে গুরুত্বপূর্ণ।
+
+-   আপনার ছবিগুলো কোনো সার্ভারে আপলোড বা সংরক্ষণ করা হয় না।
+-   অ্যালবাম তৈরির কাজ আপনার নিজের ব্রাউজারেই সম্পন্ন হয়।
+-   আপনার ছবিগুলো অন্য কারও কাছে পাঠানো হয় না।
+
+অর্থাৎ, আপনার ভ্রমণের স্মৃতি আপনার নিয়ন্ত্রণেই থাকে।
+
+## 💾 অ্যালবাম সংরক্ষণ করুন
+
+ব্রাউজার রিফ্রেশ করলে যেন আপনার কাজ হারিয়ে না যায়, সে জন্য রয়েছে **অ্যালবাম
+সেইভ করুন** সুবিধা।
+
+1.  প্রথম ধাপে ফিরে যান।
+2.  **অ্যালবাম সেইভ করুন** অপশনে ক্লিক করুন।
+3.  আপনার তৈরি অ্যালবামটি একটি ফাইল হিসেবে সংরক্ষণ করুন।
+4.  পরবর্তীতে ওয়েব অ্যাপে সেই ফাইলটি ওপেন করলেই আগের অ্যালবামটি ফিরে পাবেন।
+5.  চাইলে পুরোনো অ্যালবামে নতুন ছবি ও তথ্য যোগ করে আবার সম্পাদনা করতে পারবেন।
+
+এভাবে প্রতিবার শুরু থেকে ছবি নির্বাচন ও সাজানোর প্রয়োজন হবে না।
+
+------------------------------------------------------------------------
+
+## 🧩 অ্যালবাম তৈরির সংক্ষিপ্ত ধাপ
+
+``` text
+ছবি নির্বাচন
+    ↓
+অ্যালবামের সেটিংস ঠিক করা
+    ↓
+ছবির বিস্তারিত সম্পাদনা
+    ↓
+প্রিভিউ দেখা
+    ↓
+পোস্টার ডাউনলোড
+    ↓
+অ্যালবাম ফাইল হিসেবে সংরক্ষণ
 ```
-project.json        { format:"pix", version:1, title, theme, perMap, gsize, photos:[{file,place,d,size}], geo:{…} }
-images/001.jpg …    working copies of the photos (max 1000px on the long side)
-```
-Rename it to `.zip` to inspect it. Importing replaces the current project. `version` lets future releases keep reading old files.
 
-`version` 3 files also store each photo's zoom and position inside its shape (plus card shape, division scope and title flag); version 1 and 2 files still open.
+## ❤️ আপনার গল্প, আপনার অ্যালবাম
 
-## Phone layout (v1.0.4)
-On screens up to 760 px wide the studio becomes a three-tab workspace (১ ছবি · ২ থিম · ৩ প্রিভিউ). After photos are added the app jumps to the live preview; tapping a photo opens a bottom sheet for its district, place name, zoom and size. One finger repositions the photo inside its shape, two fingers pinch to zoom. Desktop and tablet layouts are unchanged.
+প্রতিটি ভ্রমণের পেছনে থাকে কিছু মুহূর্ত, কিছু গল্প আর কিছু স্মৃতি। **গন্তব্যহীন** সেই
+স্মৃতিগুলোকে নিজের মতো করে সাজিয়ে রাখার একটি ছোট্ট আয়োজন।
+
+::: {align="center"}
+### ছুটে চলুন গন্তব্যহীনভাবে 🏍️
+
+**ধন্যবাদ --- আপনার ভ্রমণের গল্পের অংশ হতে পেরে।**
+:::
